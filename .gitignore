@@ -1,0 +1,7 @@
+**/.metadata
+**/.settings
+.project
+.pydevproject
+**/__pycache__
+**/docs
+**/files
