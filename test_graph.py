@@ -1,33 +1,52 @@
 import graphm
-#from graphm import Graph
+from graphm import Graph
 
+g = Graph(nodes=['A','B','C','D','E'])
+print(g)
+g = Graph(edges='A-D,D-A,D-C,C-A,B-C,B-B')
+print(g)
+
+g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'])
+g.set_nodes(nodes='UU,V,X,Y,Z,T')
+g.viz.nodes()
+print(g)
+
+g = Graph(boolean=[[0,0,0,1], [0,0,1,0], [0,0,0,1], [1,0,1,1]])
+print(g)
+		
+		
 """
 	GRAPH
-"""
 file = "files/grah_bin_01"
 m = graphm.MatrixBoolean(random=(6,6))
 mb = graphm.MatrixBinary(random=(6,6))
-nodes = 'a,b,c,d,e,f'
+nodes = 'a,b,c'
+nodes = 'a,b,c,d,e,f,g,h,i,j,k,l'
 
 options = {
 	'strict': True,
 	'directed': False,
 	}
 
-g = graphm.GraphM(nodes=['A','B','C','D','E','F','G'], edges=('AF','BG','DA','FE','DB','BF'))
-g2 = graphm.GraphM(binary=mb.matrixM, dimN=mb.dimN)
-g3 = graphm.GraphM(boolean=m.matrix, nodes=nodes, nodes_style='int')
+g = Graph(binary=mb.matrixM)
+g = Graph(binary=mb.matrixM, node_style='int')
+g = Graph(binary=mb.matrixM, nodes=nodes)
+g = Graph(boolean=m.matrix)
+g = Graph(boolean=m.matrix, node_style='int')
+g = Graph(boolean=m.matrix, nodes=nodes)
+g = Graph(nodes=['a','b','c','d','e','f','g'])
+g = Graph(nodes=['A','B','C','D','E','F','G'], edges=('a-f','b-g','d-a','f-e','d-b','b-f'))
+g = Graph(nodes=['A','B','C','D','E','F','G'], edges=('A-F','B-G','D-A','F-E','D-B','B-F'))
+g = Graph(edges='A-D,D-A,D-C,C-A,B-C,B-B,E-F,E-G,B-I')
 
-g.draw(f"{file}.png", label='test', nodes_style='int')
-g2.draw(f"{file}-2.png", label='test2')
-g3.draw(f"{file}-3.png", label='test3', fontsize="14")
+g.draw(f"{file}.png", label='test', node_style='int')
+g.draw(f"{file}-2.png", label='test2')
+g.draw(f"{file}-3.png", label='test3', fontsize="14")
 
 print("m", m)
 print(g.viz.string())
-print(g2.viz.string())
-print(g3.viz.string())
 
-
-#g = GraphM(mt, nodes)
+#g = Graph(mt, nodes)
 #g.matrix2viz(label="G'")
 #g.draw(f"{file}-final.png")
+"""

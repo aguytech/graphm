@@ -1,5 +1,5 @@
 #from graph_as.amatrix import AMatrix
-#from graphm.graph import Graph
+from graphm.graph import Graph
 from graphm.graphmatrix import GraphM
 from graphm.matrixbinary import MatrixBinary
 from graphm.matrixbinaryslides import MatrixBinarySlides
