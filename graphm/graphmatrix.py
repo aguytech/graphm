@@ -98,7 +98,9 @@ class GraphM:
 			for **nodes**
 			
 			:nodes: (iter(str)) names of nodes
-			:node_style='str': (str) type of nodes name generation 'str' or 'int' 
+			:node_style: (str) type of nodes name generation 'str' or 'int'
+			
+				default: :class:`Graph.node_style`
 			
 			for **viz**
 			
@@ -150,7 +152,7 @@ class GraphM:
 		>>> repr(g)
 		'dim=5 nodes=5'
 		"""
-		return f"dim={self.dim}" + f" nodes={len(self.viz.nodes()) if self.viz else 0}"
+		return f"dim={self.dim} nodes={len(self.viz.nodes()) if self.viz else 0}"
 	
 	def __str__(self) -> str:
 		""" Return the dimension, nodes and matrix if exists
@@ -181,6 +183,9 @@ class GraphM:
 		:return: edges in single elements
 		:rtype: list
 		"""
+		if not edges:
+			return []
+		
 		# str
 		if isinstance(edges, str):
 			edges = [(a, b) for a, b in edges.split(',')]
@@ -203,6 +208,9 @@ class GraphM:
 		:return: edges in single elements
 		:rtype: list
 		"""
+		if not nodes:
+			return []
+		
 		if isinstance(nodes, str):
 			nodes = nodes.split(',')
 		nodes = [str(i) for i in nodes]
@@ -238,11 +246,13 @@ class GraphM:
 			for **nodes**
 			
 			:nodes: (iter(str)) names of nodes
-			:node_style='str': (str) type of nodes name generation 'str' or 'int' 
+			:node_style: (str) type of nodes name generation 'str' or 'int' 
+			
+				default: :class:`Graph.node_style`
 		
 		**example 1**
 		
-			>>> g = GraphM(nodes=['A','B','C','D','E'], edges=('AD','DA','DC','CA','BC','BB'))
+			>>> g = GraphM(nodes=['A','B','C','D','E'], edges=('A-D','D-A','D-C','C-A','B-C','B-B'))
 			>>> g.draw("docs/src/files/graph3.png")
 			
 		.. IMAGE:: files/graph3.png
@@ -290,9 +300,10 @@ class GraphM:
 		
 		:param dict \*\*d: containing options
 		
+			:dim: (int) number of nodes
 			:node_style: (str) type of nodes name generation
-				options: str, int
-				default:  Graph.node_style
+			
+				default: :class:`Graph.node_style`
 		
 		:return: nodes names
 		:rtype: list
@@ -376,7 +387,9 @@ class GraphM:
 			for **nodes**
 			
 			:nodes: (iter(str)) names of nodes
-			:node_style='str': (str) type of nodes name generation 'str' or 'int' 
+			:node_style: (str) type of nodes name generation 'str' or 'int' 
+			
+				default: :class:`Graph.node_style`
 		
 		>>> g = GraphM()
 		>>> g.set_matrix_binary(binary=[1, 4, 2])
@@ -384,6 +397,13 @@ class GraphM:
 		dim 3
 		matrix [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
 		nodes A B C
+		
+		>>> g = GraphM()
+		>>> g.set_matrix_binary(binary=[1, 4, 2], nodes='xa,xb,xc,xd,xe')
+		>>> print(g)
+		dim 3
+		matrix [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
+		nodes xa xb xc
 		"""
 		if not d['binary']:
 			raise ValueError("Wrong empty matrix")
@@ -405,7 +425,7 @@ class GraphM:
 			for **nodes**
 			
 			:nodes: (iter(str)) names of nodes
-			:node_style='str': (str) type of nodes name generation 'str' or 'int' 
+			:node_style: (str) type of nodes name generation 'str' or 'int' 
 	
 		>>> g = GraphM(boolean=['00010', '01100', '10000', '10100', '00000'])
 		>>> print(g)
@@ -447,15 +467,15 @@ class GraphM:
 		
 			:edges: (iter) edges in format 'in,out' or [in, out] or (in, out)
 			:nodes: (iter) names of nodes in iterable of strings
-			:node_style='str': (str) type of nodes name generation 'str' or 'int' 
+			:node_style: (str) type of nodes name generation 'str' or 'int' 
 
-		>>> g = GraphM(nodes=['A','B','C','D','E'], edges=('AD','DA','DC','CA','BC','BB'))
+		>>> g = GraphM(nodes=['A','B','C','D','E'], edges=('A-D','D-A','D-C','C-A','B-C','B-B'))
 		>>> print(g)
 		dim 5
 		matrix [[0, 0, 0, 1, 0], [0, 1, 1, 0, 0], [1, 0, 0, 0, 0], [1, 0, 1, 0, 0], [0, 0, 0, 0, 0]]
 		nodes A B C D E
 		
-		>>> g = GraphM(edges=('AD','DA','DC','CA','BC','BB'))
+		>>> g = GraphM(edges=('A-D','D-A','D-C','C-A','B-C','B-B'))
 		>>> print(g)
 		dim 4
 		matrix [[0, 0, 0, 1], [0, 1, 1, 0], [1, 0, 0, 0], [1, 0, 1, 0]]
@@ -474,8 +494,8 @@ class GraphM:
 
 		nodes_edges = {node for edge in edges for node in edge} if edges else set()
 		if nodes:
-			if nodes_edges - set(nodes):
-				raise ValueError("nodes presents in edges and not in nodes given")
+			nodes = list(nodes_edges | set(nodes))
+			nodes.sort()
 		else:
 			nodes = list(nodes_edges)
 			nodes.sort()
@@ -547,7 +567,7 @@ class GraphM:
 			:param dict \*\*d: options to specify arguments to :class:`pygraphviz.AGraph`
 		
 				:nodes: (iter(str)) names of nodes
-				:node_style='str': (str) type of nodes name generation 'str' or 'int' 
+				:node_style: (str) type of nodes name generation 'str' or 'int' 
 
 		>>> g = GraphM(boolean=['00010', '01100', '10000', '10100', '00000'])
 		>>> g.viz.nodes()

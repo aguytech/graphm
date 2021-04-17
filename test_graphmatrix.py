@@ -1,5 +1,5 @@
 import graphm
-#from graphm import Graph
+from graphm import GraphM
 
 """
 	GRAPH
@@ -14,9 +14,10 @@ options = {
 	'directed': False,
 	}
 
-g = graphm.GraphM(nodes=['A','B','C','D','E','F','G'], edges=('A-F','B-G','D-A','F-E','D-B','B-F'))
-g2 = graphm.GraphM(binary=mb.matrixM)
-g3 = graphm.GraphM(boolean=m.matrix, nodes=nodes, nodes_style='int')
+g = GraphM(nodes=['A','B','C','D','E'])
+g = GraphM(nodes=['A','B','C','D','E','F','G'], edges=('A-F','B-G','D-A','F-E','D-B','B-F'))
+g2 = GraphM(binary=mb.matrixM)
+g3 = GraphM(boolean=m.matrix, nodes=nodes, nodes_style='int')
 
 g.draw(f"{file}.png", label='test', nodes_style='int')
 g2.draw(f"{file}-2.png", label='test2')
