@@ -375,15 +375,14 @@ class GraphM:
 		s = bin(line)[2:]
 		return s.rjust(self.dim, '0')
 
-	def set_from_binary(self, **d) -> None:
+	def set_from_binary(self, binary: iter, **d) -> None:
 		""" Set boolean matrix from binary matrix and nodes if given
 		
 		Get a binary matrix contains a list of integers
 		
+		:param iter binary: binary square matrix containing matrixM in format [int, ...]
 		:param dict \*\*d: containing matrix and optionally nodes
 		
-			:binary: (list) matrixM in format [int, ...]
-
 			for **nodes**
 			
 			:nodes: (iter(str)) names of nodes
@@ -405,25 +404,25 @@ class GraphM:
 		matrix [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
 		nodes xa xb xc
 		"""
-		if not d['binary']:
+		matrix = binary
+		if not matrix:
 			raise ValueError("Wrong empty matrix")
 
-		matrix = d['binary']
 		self.dim = len(matrix)
 		self.matrix = [[int(n) for n in self.int2str(m)] for m in matrix]
 		
 		self.set_nodes(**d)
 		self.set_edges(self.viz.nodes())
 
-	def set_from_boolean(self, **d) -> None:
+	def set_from_boolean(self, boolean: iter, **d) -> None:
 		""" Set boolean matrix with int 0/1 from boolean matrix and nodes if given
 		
+		Get a boolean matrix containing 2 dimensions of rows and columns.
+		Support several formats.
+			
+		:param iter boolean: boolean square matrix in formats [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...) 
 		:param dict \*\*d: containing matrix and optionally nodes
 		
-			:boolean: (list) matrix: matrix in formats [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...) 
-
-			for **nodes**
-			
 			:nodes: (iter(str)) names of nodes
 			:node_style: (str) node name generation style: 'str' or 'int' 
 	
@@ -445,7 +444,7 @@ class GraphM:
 		matrix [[0, 0, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1], [1, 0, 1, 1]]
 		nodes A B C D
 		"""
-		matrix = d['boolean']
+		matrix = boolean
 		if not matrix:
 			raise ValueError("Wrong empty matrix")
 

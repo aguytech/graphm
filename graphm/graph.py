@@ -391,17 +391,14 @@ class Graph:
 		s = bin(line)[2:]
 		return s.rjust(dim, '0')
 
-	def set_from_binary(self, **d) -> None:
+	def set_from_binary(self, binary: iter, **d) -> None:
 		""" Set viz graph from binary matrix and nodes if given
 		
 		Get a binary matrixN containing rows of integers
 		
-		:param dict \*\*d: containing matrixN and optionally nodes, node_style
+		:param iter binary: binary square matrix containing matrixM in format [int, ...]
+		:param dict \*\*d: containing optionally nodes, node_style
 		
-			:binary: (list) matrixM in format [int, ...]
-
-			for **nodes**
-			
 			:nodes: (iter(str)) names of nodes
 			:dim: (int) number of nodes (needed if nodes are empty)
 			:node_style: (str) node name generation style: 'str' or 'int' 
@@ -415,9 +412,10 @@ class Graph:
 		nodes A B C
 		edges A-C B-A C-B
 		"""
-		matrix = d['binary']
+		matrix = binary
 		if not matrix:
 			raise ValueError("Wrong empty matrix")
+
 		dim = len(matrix)
 		nodes = self.set_nodes(dim=dim, cut=True, **d)
 
@@ -426,18 +424,15 @@ class Graph:
 		
 		self.set_edges(edges)
 
-	def set_from_boolean(self, **d) -> None:
+	def set_from_boolean(self, boolean: iter, **d) -> None:
 		""" Set viz graph from boolean matrix and nodes if given.
 		
 		Get a boolean matrix containing 2 dimensions of rows and columns.
 		Support several formats.
 			
+		:param iter boolean: boolean square matrix in formats [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...) 
 		:param dict \*\*d: containing matrix and optionally nodes, node_style
 		
-			:boolean: (list) matrix: matrix in formats [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...) 
-
-			for **nodes**
-			
 			:nodes: (iter(str)) names of nodes
 			:dim: (int) number of nodes (needed if nodes are empty)
 			:node_style: (str) node name generation style: 'str' or 'int' 
@@ -462,9 +457,10 @@ class Graph:
 		nodes A B C D
 		edges A-D B-C C-D D-A D-C D-D
 		"""
-		matrix = d['boolean']
+		matrix = boolean
 		if not matrix:
 			raise ValueError("Wrong empty matrix")
+		
 		dim = len(matrix)
 		nodes = self.set_nodes(dim=dim, cut=True, **d)
 
