@@ -1,6 +1,7 @@
 #from graph_as.amatrix import AMatrix
 from graphm.graph import Graph
 from graphm.graphmatrix import GraphM
+from graphm.graphpert import GraphPert
 from graphm.matrixbinary import MatrixBinary
 from graphm.matrixbinaryslides import MatrixBinarySlides
 from graphm.matrixboolean import MatrixBoolean

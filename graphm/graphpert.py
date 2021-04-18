@@ -2,9 +2,12 @@ from graphm import Graph
 
 
 class GraphPert(Graph):
-	""" Manage graph with matrix.
+	""" Manage Pert graph.
 	
-	Representation of graph with the export capacity in dot format
+	Data is directly stored in :class:`pygraphviz.Agraph`
+
+	Drawing is supported by writing file in 'dot' format 
+	(others layout are availables :class:`GraphM.layout`)
 	
 	:var str node_style: default style to generate nodes
 	
@@ -24,7 +27,7 @@ class GraphPert(Graph):
 		:ranksep: (str) distance between nodes
 		:strict: (bool) mode for dot graph
 	
-	:var dict node_attr: default attributes for nodes, see :class:`pygraphviz.Agraph`
+	:var dict node_attr: default attributgetattr(self, attr)es for nodes, see :class:`pygraphviz.Agraph`
 	
 		:color: (str) font color of nodes
 		:fontcolor: (str) font color of nodes
@@ -36,7 +39,9 @@ class GraphPert(Graph):
 		:color: (str) font color of edges
 		:fontcolor: (str) font color of edges
 		:fontname: (str) font name of edges
-
+		
+	.. NOTE:: For inherited class variables see :class:`graphm.graph.Graph`
+		
 	.. CAUTION:: Instance variables
 	
 	:var pygraphviz.AGraph viz: manage drawing in dot format with :class:`pygraphviz.AGraph`
@@ -45,7 +50,7 @@ class GraphPert(Graph):
 
 	**Graph for the majority of examples** 
 	
-	.. IMAGE:: files/graph2.png
+	.. IMAGE:: files/graph_draw2.png
 	
 	"""
 	node_style = 'str'
@@ -71,67 +76,66 @@ class GraphPert(Graph):
 		'fontname' : 'Arial',
 		}
 	
-	def __init__(self, **d) -> 'GraphPert':
-		""" Set the graph properties from matrix or a classical graph definition
+	def set_from_nodes_edges(self, **d) -> None:
+		""" Set the graph from both nodes and edges passed as arguments 
 		
-			* matrix
-						
-		 		| **boolean** get a boolean matrix
-				| **binary** get a binary matrixM and dimN
+		.. NOTE::
 		
-			* classical
-						
-				| **edges** get list of edges and of optionally nodes
-				| **nodes** optional, get list of nodes
-
-		:param dict \*\*d: options to specify the type of matrix
-		
-			:boolean: (list[int]) matrix in [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...)
-			:binary: matrixM in [int, ...]
-			:edges: (tuple/list) list of edges in tuple format (nodeIn, nodeOut)
-			:nodes: (tuple/list) optional list of nodes
-
-			for **nodes**
+			if edges are given without nodes, the nodes are generated automatically from edges
 			
-			:nodes: (iter(str)) names of nodes
-			:node_style: (str) type of nodes name generation 'str' or 'int' 
+			if the number of nodes given is greater than those present in the edges, they are added to the graph
+		
+		:param dict \*\*d: containing matrix and optionally nodes
+		
+			:edges: (iter) edges in format 'in,out' or [in, out] or (in, out)
+			:nodes: (iter) names of nodes in iterable of strings
+			:node_style: (str) node name generation style: 'str' or 'int' 
 						
-				default: :class:`GraphPert.node_style`
+				default: :class:`Graph.node_style`
 
-			for **viz**
-			
-			:layout: (dict) default attributes for graph layout, see :class:`GraphPert.layout`
-			:graph_attr: (dict) default attributes for graph, see :attr:`GraphPert.graph_attr`
-			:node_attr: (dict) default attributes for nodes, see :attr:`GraphPert.node_attr`
-			:edge_attr: (dict) default attributes for edges, see :attr:`GraphPert.edge_attr`
-		
-		:return: the graph
-		:rtype: GraphPert
-
-		>>> g = GraphPert()
-		>>> print(g)
-		nodes=0 edges=0
-		nodes 
-		edges 
-		
-		>>> g = GraphPert(boolean=['00010', '01100', '10000', '10100', '00000'], nodes='a,b,c,d,e,f,g,h,i,j', node_style='int')
+		>>> g = Graph(nodes=['A','B','C','D','E'], edges=('A-D','D-A','D-C','C-A','B-C','B-B'))
 		>>> print(g)
 		nodes=5 edges=6
-		nodes a b c d e
-		edges a-d b-b b-c c-a d-a d-c
+		nodes A B C D E
+		edges A-D B-B B-C C-A D-A D-C
+		
+		>>> g = Graph(nodes=['A','B','C','X','Y'], edges=('A-D,D-A,D-C,C-A,B-C,B-B,E-F,E-G,B-I'))
+		>>> print(g)
+		nodes=10 edges=9
+		nodes A B C D E F G I X Y
+		edges A-D B-B B-C B-I C-A D-A D-C E-F E-G
+				
+		>>> g = Graph(edges=('A-D,D-A,D-C,C-A,B-C,B-B'))
+		>>> print(g)
+		nodes=4 edges=6
+		nodes A B C D
+		edges A-D B-B B-C C-A D-A D-C
+				
+		>>> g = Graph(nodes=['A','B','C','D','E'])
+		>>> print(g)
+		nodes=5 edges=0
+		nodes A B C D E
+		edges 
 		"""
-		self.layout = GraphPert.layout.copy()
+		nodes = d.pop('nodes') if 'nodes' in d else []
+		edges = d['edges'] if 'edges' in d else []
+
+		edges = self.convert_edges(edges)
+
+		nodes_edges = {node for edge in edges for node in edge} if edges else set()
+		if nodes:
+			nodes = list(nodes_edges | set(nodes))
+			nodes.sort()
+		else:
+			nodes = list(nodes_edges)
+			nodes.sort()
 		
-		# viz
-		self.set_viz(**d)
-		
-		# matrix
-		if 'boolean' in d:
-			self.set_matrix_boolean(**d)
-		elif 'binary' in d:
-			self.set_matrix_binary(**d)
-		elif ('nodes' in d) or ('edges' in d):
-			self.set_nodes_edges(**d)
+		# dim
+		dim = len(nodes)
+		# nodes
+		self.set_nodes(dim=dim, nodes=nodes, **d)
+		# edges
+		self.set_edges(edges)
 
 
 

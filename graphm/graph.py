@@ -3,7 +3,10 @@ import pygraphviz
 class Graph:
 	""" Manage graph with matrix.
 	
-	Representation of graph with the export capacity in dot format
+	Data is directly stored in :class:`pygraphviz.Agraph`
+
+	Drawing is supported by writing file in 'dot' format 
+	(others layout are availables :class:`GraphM.layout`)
 	
 	:var str node_style: default style to generate nodes
 	
@@ -44,7 +47,7 @@ class Graph:
 
 	**Graph for the majority of examples** 
 	
-	.. IMAGE:: files/graph2.png
+	.. IMAGE:: files/graph_draw2.png
 	
 	"""
 	node_style = 'str'
@@ -93,10 +96,10 @@ class Graph:
 			for **nodes**
 			
 			:nodes: (iter(str)) names of nodes
-			:node_style: (str) type of nodes name generation 'str' or 'int' 
-						
+			:node_style: (str) node name generation style: 'str' or 'int' 
+				
 				default: :class:`Graph.node_style`
-
+			
 			for **viz**
 			
 			:layout: (dict) default attributes for graph layout, see :class:`Graph.layout`
@@ -123,14 +126,16 @@ class Graph:
 		
 		# viz
 		self.set_viz(**d)
-		
-		# matrix
-		if 'boolean' in d:
-			self.set_matrix_boolean(**d)
-		elif 'binary' in d:
-			self.set_matrix_binary(**d)
-		elif ('nodes' in d) or ('edges' in d):
-			self.set_nodes_edges(**d)
+
+		# call the good method to initialize object
+		initialized = False
+		for attr in ('boolean', 'binary', 'pert'):
+			if attr in d:
+				self._call_init(f"set_from_{attr}", **d)
+				initialized = True
+				break
+		if not initialized and ('nodes' in d or 'edges' in d):
+			self._call_init('set_from_nodes_edges', **d)
 
 	def __repr__(self) -> str:
 		""" Return the dimension and the length of nodes if exists
@@ -168,6 +173,18 @@ class Graph:
 			+ "\n" + f"nodes {self.str_nodes()}" \
 			+ "\n" + f"edges {self.str_edges()}"
 
+	def _call_init(self, attr: str, **d) -> None:
+		""" call method to initialize object if exists
+		
+		:param str attr: the name of method to call
+		:param dict \*\*d: dictionary of arguments to pass
+		"""
+		if hasattr(self, attr):
+			foo = getattr(self, attr)
+			foo(**d)
+		else:
+			raise ValueError(f"Class '{self.__class__}' does not have the method '{attr}' for initialization")
+		
 	def convert_edges(self, edges: iter) -> list:
 		""" Convert edges to list of single elements
 		
@@ -239,43 +256,43 @@ class Graph:
 			for **nodes**
 			
 			:nodes: (iter(str)) names of nodes
-			:node_style: (str) type of nodes name generation 'str' or 'int' 
-						
+			:node_style: (str) node name generation style: 'str' or 'int' 
+			
 				default: :class:`Graph.node_style`
 		
 		**example 1**
 		
 			>>> g = Graph(nodes=['a','bb','c','d','e'], edges=('a-d','d-a','d-c','c-a','bb-c','bb-bb'))
-			>>> g.draw("docs/src/files/graph3.png")
+			>>> g.draw("docs/src/files/graph_draw.png")
 			
-		.. IMAGE:: files/graph3.png
+		.. IMAGE:: files/graph_draw.png
 		
 		.list(self.viz.graph_attr.items())
 		
 		**example 2**
 		
 			>>> g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'])
-			>>> g.draw("docs/src/files/graph3.png")
+			>>> g.draw("docs/src/files/graph_draw2.png")
 			
-		.. IMAGE:: files/graph3.png
+		.. IMAGE:: files/graph_draw2.png
 		
 		.
 			
 		**example 3**
 		
 			>>> g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'], node_style='int')
-			>>> g.draw("docs/src/files/graph4.png")
+			>>> g.draw("docs/src/files/graph_draw3.png")
 			
-		.. IMAGE:: files/graph4.png
+		.. IMAGE:: files/graph_draw3.png
 		
 		.
 			
 		**example 4**
 		
 			>>> g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'], nodes=['α','β','γ','δ','ε','ζ'])
-			>>> g.draw("docs/src/files/graph5.png")
+			>>> g.draw("docs/src/files/graph_draw4.png")
 			
-		.. IMAGE:: files/graph5.png
+		.. IMAGE:: files/graph_draw4.png
 		
 		.
 		"""
@@ -295,7 +312,7 @@ class Graph:
 		:param dict \*\*d: containing options
 		
 			:dim: (int) number of nodes
-			:node_style: (str) type of nodes name generation 'str' or 'int' 
+			:node_style: (str) node name generation style: 'str' or 'int' 
 						
 				default: :class:`Graph.node_style`
 		
@@ -374,10 +391,10 @@ class Graph:
 		s = bin(line)[2:]
 		return s.rjust(dim, '0')
 
-	def set_matrix_binary(self, **d) -> None:
+	def set_from_binary(self, **d) -> None:
 		""" Set viz graph from binary matrix and nodes if given
 		
-		Get a binary matrixN, the binary matrix containing rows of integers
+		Get a binary matrixN containing rows of integers
 		
 		:param dict \*\*d: containing matrixN and optionally nodes, node_style
 		
@@ -387,12 +404,12 @@ class Graph:
 			
 			:nodes: (iter(str)) names of nodes
 			:dim: (int) number of nodes (needed if nodes are empty)
-			:node_style: (str) type of nodes name generation 'str' or 'int' 
+			:node_style: (str) node name generation style: 'str' or 'int' 
 						
 				default: :class:`Graph.node_style`
 		
 		>>> g = Graph()
-		>>> g.set_matrix_binary(binary=[1, 4, 2])
+		>>> g.set_from_binary(binary=[1, 4, 2])
 		>>> print(g)
 		nodes=3 edges=3
 		nodes A B C
@@ -409,11 +426,12 @@ class Graph:
 		
 		self.set_edges(edges)
 
-	def set_matrix_boolean(self, **d) -> None:
-		""" Set viz graph from boolean matrix and nodes if given
+	def set_from_boolean(self, **d) -> None:
+		""" Set viz graph from boolean matrix and nodes if given.
 		
-		Get a boolean matrix, the boolean matrix containing tables in 2 dimensions of 0/1
-		
+		Get a boolean matrix containing 2 dimensions of rows and columns.
+		Support several formats.
+			
 		:param dict \*\*d: containing matrix and optionally nodes, node_style
 		
 			:boolean: (list) matrix: matrix in formats [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...) 
@@ -422,7 +440,7 @@ class Graph:
 			
 			:nodes: (iter(str)) names of nodes
 			:dim: (int) number of nodes (needed if nodes are empty)
-			:node_style: (str) type of nodes name generation 'str' or 'int' 
+			:node_style: (str) node name generation style: 'str' or 'int' 
 						
 				default: :class:`Graph.node_style`
 		
@@ -455,16 +473,20 @@ class Graph:
 		
 		self.set_edges(edges)
 
-	def set_nodes_edges(self, **d) -> None:
-		""" Set boolean matrix from nodes or edges
+	def set_from_nodes_edges(self, **d) -> None:
+		""" Set the graph from both nodes and edges passed as arguments 
 		
-		.. NOTE:: if edges are given without nodes, the nodes are generate from edges automatically
+		.. NOTE::
+		
+			if edges are given without nodes, the nodes are generated automatically from edges
+			
+			if the number of nodes given is greater than those present in the edges, they are added to the graph
 		
 		:param dict \*\*d: containing matrix and optionally nodes
 		
 			:edges: (iter) edges in format 'in,out' or [in, out] or (in, out)
 			:nodes: (iter) names of nodes in iterable of strings
-			:node_style: (str) type of nodes name generation 'str' or 'int' 
+			:node_style: (str) node name generation style: 'str' or 'int' 
 						
 				default: :class:`Graph.node_style`
 
@@ -565,9 +587,9 @@ class Graph:
 		
 				:nodes: (iter(str)) names of nodes
 				:dim: (int) number of nodes (needed if nodes are empty)
-				:node_style: (str) type of nodes name generation 'str' or 'int' 
+				:node_style: (str) node name generation style: 'str' or 'int' 
 						
-				default: :class:`Graph.node_style`
+					default: :class:`Graph.node_style`
 		
 		:return: nodes generated after settings
 		:rtype: list

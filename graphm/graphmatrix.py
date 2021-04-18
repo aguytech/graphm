@@ -3,8 +3,10 @@ import pygraphviz
 class GraphM:
 	""" Manage graph with matrix:
 	
-		* Data with internal representation in matrix
-		* Representation of graph with the export capacity in dot format
+	Data is stored in an internal boolean matrix
+	
+	Drawing is supported by writing file in dot format
+	(others layout are availables :class:`GraphM.layout`)
 	
 	:var str node_style: default style to generate nodes
 	
@@ -45,11 +47,9 @@ class GraphM:
 
 	:var dict layout: graph layout, see :class:`Graph.layout`
 
-			
-
 	**Graph for the majority of examples** 
 	
-	.. IMAGE:: files/graph2.png
+	.. IMAGE:: files/graphm_draw2.png
 	
 	"""
 	node_style = 'str'
@@ -98,7 +98,7 @@ class GraphM:
 			for **nodes**
 			
 			:nodes: (iter(str)) names of nodes
-			:node_style: (str) type of nodes name generation 'str' or 'int'
+			:node_style: (str) style of nodes name generation 'str' or 'int' 
 			
 				default: :class:`Graph.node_style`
 			
@@ -133,11 +133,11 @@ class GraphM:
 		
 		# matrix
 		if 'boolean' in d:
-			self.set_matrix_boolean(**d)
+			self.set_from_boolean(**d)
 		elif 'binary' in d:
-			self.set_matrix_binary(**d)
+			self.set_from_binary(**d)
 		elif ('nodes' in d) or ('edges' in d):
-			self.set_matrix_ne(**d)
+			self.set_from_nodes_edges(**d)
 
 	def __repr__(self) -> str:
 		""" Return the dimension and the length of nodes if exists
@@ -188,7 +188,7 @@ class GraphM:
 		
 		# str
 		if isinstance(edges, str):
-			edges = [(a, b) for a, b in edges.split(',')]
+			edges = [(i, j) for i, j in edges.split(',')]
 		# iter(str)
 		elif isinstance(edges[0], str):
 				edges = [[i for i in edge.split('-')] for edge in edges]
@@ -246,48 +246,48 @@ class GraphM:
 			for **nodes**
 			
 			:nodes: (iter(str)) names of nodes
-			:node_style: (str) type of nodes name generation 'str' or 'int' 
+			:node_style: (str) node name generation style: 'str' or 'int' 
 			
 				default: :class:`Graph.node_style`
 		
 		**example 1**
 		
-			>>> g = GraphM(nodes=['A','B','C','D','E'], edges=('A-D','D-A','D-C','C-A','B-C','B-B'))
-			>>> g.draw("docs/src/files/graph3.png")
+			>>> g = GraphM(nodes=['a','bb','c','d','e'], edges=('a-d','d-a','d-c','c-a','bb-c','bb-bb'))
+			>>> g.draw("docs/src/files/graphm_draw.png")
 			
-		.. IMAGE:: files/graph3.png
+		.. IMAGE:: files/graphm_draw.png
 		
 		.list(self.viz.graph_attr.items())
 		
 		**example 2**
 		
 			>>> g = GraphM(boolean=['00010', '01100', '10000', '10100', '00000'])
-			>>> g.draw("docs/src/files/graph3.png")
+			>>> g.draw("docs/src/files/graphm_draw2.png")
 			
-		.. IMAGE:: files/graph3.png
+		.. IMAGE:: files/graphm_draw2.png
 		
 		.
 			
 		**example 3**
 		
 			>>> g = GraphM(boolean=['00010', '01100', '10000', '10100', '00000'], node_style='int')
-			>>> g.draw("docs/src/files/graph4.png")
+			>>> g.draw("docs/src/files/graphm_draw3.png")
 			
-		.. IMAGE:: files/graph4.png
+		.. IMAGE:: files/graphm_draw3.png
 		
 		.
 			
 		**example 4**
 		
 			>>> g = GraphM(boolean=['00010', '01100', '10000', '10100', '00000'], nodes=['α','β','γ','δ','ε','ζ'])
-			>>> g.draw("docs/src/files/graph5.png")
+			>>> g.draw("docs/src/files/graphm_draw4.png")
 			
-		.. IMAGE:: files/graph5.png
+		.. IMAGE:: files/graphm_draw4.png
 		
 		.
 		"""
 		# viz
-		self.update_viz_attrs(**d)
+		self.update_attrs(**d)
 		
 		# draw
 		# TODO
@@ -375,7 +375,7 @@ class GraphM:
 		s = bin(line)[2:]
 		return s.rjust(self.dim, '0')
 
-	def set_matrix_binary(self, **d) -> None:
+	def set_from_binary(self, **d) -> None:
 		""" Set boolean matrix from binary matrix and nodes if given
 		
 		Get a binary matrix contains a list of integers
@@ -387,19 +387,19 @@ class GraphM:
 			for **nodes**
 			
 			:nodes: (iter(str)) names of nodes
-			:node_style: (str) type of nodes name generation 'str' or 'int' 
+			:node_style: (str) node name generation style: 'str' or 'int' 
 			
 				default: :class:`Graph.node_style`
 		
 		>>> g = GraphM()
-		>>> g.set_matrix_binary(binary=[1, 4, 2])
+		>>> g.set_from_binary(binary=[1, 4, 2])
 		>>> print(g)
 		dim 3
 		matrix [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
 		nodes A B C
 		
 		>>> g = GraphM()
-		>>> g.set_matrix_binary(binary=[1, 4, 2], nodes='xa,xb,xc,xd,xe')
+		>>> g.set_from_binary(binary=[1, 4, 2], nodes='xa,xb,xc,xd,xe')
 		>>> print(g)
 		dim 3
 		matrix [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
@@ -412,10 +412,10 @@ class GraphM:
 		self.dim = len(matrix)
 		self.matrix = [[int(n) for n in self.int2str(m)] for m in matrix]
 		
-		self.set_viz_nodes(**d)
-		self.set_viz_edges(self.viz.nodes())
+		self.set_nodes(**d)
+		self.set_edges(self.viz.nodes())
 
-	def set_matrix_boolean(self, **d) -> None:
+	def set_from_boolean(self, **d) -> None:
 		""" Set boolean matrix with int 0/1 from boolean matrix and nodes if given
 		
 		:param dict \*\*d: containing matrix and optionally nodes
@@ -425,7 +425,7 @@ class GraphM:
 			for **nodes**
 			
 			:nodes: (iter(str)) names of nodes
-			:node_style: (str) type of nodes name generation 'str' or 'int' 
+			:node_style: (str) node name generation style: 'str' or 'int' 
 	
 		>>> g = GraphM(boolean=['00010', '01100', '10000', '10100', '00000'])
 		>>> print(g)
@@ -455,10 +455,10 @@ class GraphM:
 		
 		self.matrix = [[int(matrix[m][n]) for n in range(self.dim)] for m in range(self.dim)]
 		
-		self.set_viz_nodes(**d)
-		self.set_viz_edges(self.viz.nodes())
+		self.set_nodes(**d)
+		self.set_edges(self.viz.nodes())
 
-	def set_matrix_ne(self, **d) -> None:
+	def set_from_nodes_edges(self, **d) -> None:
 		""" Set boolean matrix from nodes or edges
 		
 		.. NOTE:: if edges are given without nodes, the nodes are generate from edges automatically
@@ -467,7 +467,7 @@ class GraphM:
 		
 			:edges: (iter) edges in format 'in,out' or [in, out] or (in, out)
 			:nodes: (iter) names of nodes in iterable of strings
-			:node_style: (str) type of nodes name generation 'str' or 'int' 
+			:node_style: (str) node name generation style: 'str' or 'int' 
 
 		>>> g = GraphM(nodes=['A','B','C','D','E'], edges=('A-D','D-A','D-C','C-A','B-C','B-B'))
 		>>> print(g)
@@ -503,7 +503,7 @@ class GraphM:
 		# dim
 		self.dim = len(nodes)
 		# nodes
-		self.set_viz_nodes(nodes=nodes, cut=False)
+		self.set_nodes(nodes=nodes, cut=False)
 		
 		# matrix
 		self.matrix = [[0 for _ in range(self.dim)] for _ in range(self.dim)]
@@ -512,7 +512,7 @@ class GraphM:
 			self.matrix[nodes_rev[edgeIn]][nodes_rev[edgeOut]] = 1
 
 		# edges
-		self.set_viz_edges(nodes)
+		self.set_edges(nodes)
 
 	def set_viz(self,**d) -> None:
 		""" Set instance of :class:`pygraphviz.AGraph` with viz properties
@@ -533,9 +533,9 @@ class GraphM:
 		self.viz = pygraphviz.AGraph()
 		
 		self.init_viz_attrs()
-		self.update_viz_attrs(**d)
+		self.update_attrs(**d)
 
-	def set_viz_edges(self, nodes: list=[]) -> None:
+	def set_edges(self, nodes: list=[]) -> None:
 		""" Add edges to viz from arguments edges & nodes
 		
 		:param list nodes: nodes of graph
@@ -544,7 +544,7 @@ class GraphM:
 		>>> g.viz.edges()
 		[('A', 'D'), ('B', 'B'), ('B', 'C'), ('C', 'A'), ('D', 'C')]
 
-		>>> g.set_viz_edges('a,b,c,d,e,f,g,h,j')
+		>>> g.set_edges('a,b,c,d,e,f,g,h,j')
 		>>> g.viz.edges()
 		[('a', 'd'), ('d', 'c'), ('b', 'b'), ('b', 'c'), ('c', 'a')]
 		"""
@@ -558,7 +558,7 @@ class GraphM:
 				if self.matrix[m][n]:
 					self.viz.add_edge(nodes[m], nodes[n])
 
-	def set_viz_nodes(self, cut :bool=True, **d) -> None:
+	def set_nodes(self, cut :bool=True, **d) -> None:
 		""" Add nodes to viz from:
 			#. dictionary if given in argument
 			#. generated by self.generate_nodes()
@@ -567,13 +567,18 @@ class GraphM:
 			:param dict \*\*d: options to specify arguments to :class:`pygraphviz.AGraph`
 		
 				:nodes: (iter(str)) names of nodes
-				:node_style: (str) type of nodes name generation 'str' or 'int' 
+				:node_style: (str) node name generation style: 'str' or 'int' 
+						
+					default: :class:`Graph.node_style`
+		
+		:return: nodes generated after settings
+		:rtype: list
 
 		>>> g = GraphM(boolean=['00010', '01100', '10000', '10100', '00000'])
 		>>> g.viz.nodes()
 		['A', 'B', 'C', 'D', 'E']
 
-		>>> g.set_viz_nodes(nodes='UU,V,X,Y,Z,T')
+		>>> g.set_nodes(nodes='UU,V,X,Y,Z,T')
 		>>> g.viz.nodes()
 		['UU', 'V', 'X', 'Y', 'Z']
 		"""
@@ -653,7 +658,7 @@ class GraphM:
 		"""
 		return ' '.join(self.viz.nodes()) if self.viz else ""
 
-	def update_viz_attrs(self, **d) -> None:
+	def update_attrs(self, **d) -> None:
 		""" Add viz attributes to drawing
 		
 		:param dict \*\*d: options to specify arguments to :class:`pygraphviz.AGraph`
@@ -664,7 +669,7 @@ class GraphM:
 		>>> list(g.viz.graph_attr.items())
 		[('directed', 'True'), ('label', 'G'), ('rankdir', 'TB'), ('ranksep', '0.5'), ('strict', 'False')]
 
-		>>> g.update_viz_attrs(graph_attr={'label':'new', 'margin':0.2})
+		>>> g.update_attrs(graph_attr={'label':'new', 'margin':0.2})
 		>>> list(g.viz.graph_attr.items())
 		[('directed', 'True'), ('label', 'new'), ('margin', '0.2'), ('rankdir', 'TB'), ('ranksep', '0.5'), ('strict', 'False')]
 		"""

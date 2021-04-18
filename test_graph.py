@@ -1,17 +1,7 @@
 import graphm
 from graphm import Graph
 
-g = Graph(nodes=['A','B','C','D','E'])
-print(g)
-g = Graph(edges='A-D,D-A,D-C,C-A,B-C,B-B')
-print(g)
-
-g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'])
-g.set_nodes(nodes='UU,V,X,Y,Z,T')
-g.viz.nodes()
-print(g)
-
-g = Graph(boolean=[[0,0,0,1], [0,0,1,0], [0,0,0,1], [1,0,1,1]])
+g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'], nodes='a,b,c,d,e,f,g,h,i,j', node_style='int')
 print(g)
 		
 		
