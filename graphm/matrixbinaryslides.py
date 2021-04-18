@@ -33,7 +33,7 @@ class MatrixBinarySlides():
 
 	**Graph for the majority of examples** 
 	
-	.. IMAGE:: files/graph1.png
+	.. IMAGE:: files/mbs.png
 
 	"""
 
@@ -640,7 +640,7 @@ class MatrixBinarySlides():
 		:return: a report of matrix properties
 		:rtype: dict
 
-		.. IMAGE:: files/graph1.png
+		.. IMAGE:: files/mbs.png
 
 		>>> m =MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
 		>>> mbs = MatrixBinarySlides(m.get_closure_slides())

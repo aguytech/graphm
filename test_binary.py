@@ -1,10 +1,12 @@
 """
 	MATRIXBINARY
 """
-from graphas import MatrixBinary
+from graphm import MatrixBinary
 
 """
 """
+m1 = MatrixBinary(matrix=([1, 1, 0, 4, 10, 8], 6))
+print(m1.str())
 m1 = MatrixBinary(boolean=['010101','101010','101011','111000'])
 print(m1.str())
 m1 = MatrixBinary(empty=(2, 6))

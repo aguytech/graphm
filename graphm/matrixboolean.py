@@ -1,13 +1,14 @@
-import functools, random
+import functools
+import random as rnd
 from graphm.amatrix import AMatrix
 
 class MatrixBoolean(AMatrix):
 	""" Manage a boolean matrix
 	
+	.. NOTE:: For inherited class variables see :class:`graphm.amatrix.AMatrix`
+	
 	.. CAUTION:: Instance variables
 	
-	:var int dimM: number of rows
-	:var int dimN: number of columns
 	:var list matrix: matrix with integers 0/1
 	"""
 
@@ -25,6 +26,8 @@ class MatrixBoolean(AMatrix):
 			:matrix: (list) matrix in [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...)
 			:random: (tuple) dimensions for matrix (dimM: int, dimN: int)
 			:unity: (int) dimensions for square matrix
+			
+		For default options see :class:`AMatrix.__init__`
 			
 		:return: the matrix
 		:rtype: MatrixBoolean
@@ -106,11 +109,23 @@ class MatrixBoolean(AMatrix):
 		return  f"dim {self.dimM},{self.dimN}" +"\n" \
 			+ "\n".join("".join(str(n) for n in m) for m in self.matrix)
 	
+	def get_copy(self) -> 'MatrixBoolean':
+		""" Return a copy of matrix
+		
+		:return: copy of matrix
+		:rtype: MatrixBoolean
+		
+		>>> m = MatrixBoolean(matrix=['001', '000', '111', '101', '100'])
+		>>> m.get_copy()
+		001,000,111,101,100
+		"""
+		return MatrixBoolean(matrix=self.matrix)
+		
 	def get_value(self, m: int, n: int) -> int:
 		""" Return value of the cell at position m, n
 		
-		:param int m: value of row
-		:param int n: value of column
+		:param int m: row of value
+		:param int n: column of value
 		:param int value: value of cell
 		
 		>>> m = MatrixBoolean(matrix=['00001', '00100', '00010'])
@@ -121,7 +136,23 @@ class MatrixBoolean(AMatrix):
 		"""
 		return self.matrix[m][n]
 	
-	def set_matrix(self, matrix: list) -> None:
+	def set_from_empty(self, empty: int) -> None:
+		""" Set an empty matrix containing only 0
+		
+		:param tuple empty: containing 2 dimensions of matrix: (rows, columns)
+		
+			:dimM: (int) number of rows
+			:dimN: (int) number of columns
+		
+		>>> m = MatrixBoolean(empty=(4,8))
+		>>> m
+		00000000,00000000,00000000,00000000
+		"""
+		dimM, dimN = empty
+		self._set_dim(dimM, dimN)
+		self.matrix = [[0 for _ in range(dimN) ] for _ in range(dimM)]
+
+	def set_from_matrix(self, matrix: list) -> None:
 		""" Set content of the matrix  from the given matrix 
 		get a boolean matrix containing list of string or list of list of integers
 		
@@ -144,27 +175,17 @@ class MatrixBoolean(AMatrix):
 				line = [int(i) for i in line]
 			self.matrix.append(line)
 
-	def set_matrix_empty(self, dimM: int, dimN: int) -> None:
-		""" Set an empty matrix containing only 0
-		
-		:param int dimM: number of rows
-		:param int dimN: number of columns
-		
-		>>> m = MatrixBoolean(empty=(4,8))
-		>>> m
-		00000000,00000000,00000000,00000000
-		"""
-		self._set_dim(dimM, dimN)
-		self.matrix = [[0 for _ in range(dimN) ] for _ in range(dimM)]
-
-	def set_matrix_random(self, dimM: int, dimN: int, level: int=0, reflexive:bool=False) -> None:
+	def set_from_random(self, random: tuple, level: int=0) -> None:
 		""" Set a matrix containing random booleans in integer representation
 		
 		the level represents the quantity of 0 compared to 1 (0-10)
 		Reflexivity is the possibility for one node to go to itself
 		
-		:param int dimM: number of rows
-		:param int dimN: number of columns
+		:param tuple random: containing 2 dimensions of matrix: (rows, columns)
+		
+			:dimM: (int) number of rows
+			:dimN: (int) number of columns
+		
 		:param int level=0: (0-10), quantity of 0 compared to 1
 		:param bool reflexive: if True allow reflexive nodes, default is False
 		
@@ -172,6 +193,7 @@ class MatrixBoolean(AMatrix):
 		>>> (m.dimM,m.dimN)
 		(4, 8)
 		"""
+		dimM, dimN = random
 		self._set_dim(dimM, dimN)
 		
 		chars = [
@@ -189,7 +211,7 @@ class MatrixBoolean(AMatrix):
 
 		""" TOKEEP
 		# reflexivity
-		if not reflexive:
+		if not self.isreflexive:
 			self.matrix = [[random.getrandbits(1) if m != n else 0 for n in range(dimN) ] for m in range(dimM)]
 		else:
 			self.matrix = [[random.getrandbits(1) for _ in range(dimN) ] for _ in range(dimM)]
@@ -197,18 +219,18 @@ class MatrixBoolean(AMatrix):
 	
 		matrix = []
 		for _ in range(dimM):
-			j = random.randint(0,200)
+			j = rnd.randint(0,200)
 			matrix.append([int(i) for i in chars[level][j:j+dimN]])
 		# reflexivity
-		if not reflexive:
+		if not self.isreflexive:
 			matrix = [[matrix[m][n] if m != n else 0 for n in range(dimN)] for m in range(dimM)]
 		
 		self.matrix = matrix
 
-	def set_matrix_unity(self, dim: int) -> None:
+	def set_from_unity(self, unity: int) -> None:
 		""" Set an unity matrix: an empty square matrix with diagonal to 1
 
-		:param int dim: number of rows and columns
+		:param int unity: number of rows and columns
 		
 		>>> m = MatrixBoolean(unity=4)
 		>>> print(m)
@@ -218,6 +240,7 @@ class MatrixBoolean(AMatrix):
 		0010
 		0001
 		"""
+		dim = unity
 		self._set_dim(dim, dim)
 		self.matrix = [[0 if i != j else 1 for i in range(dim) ] for j in range(dim)]
 	

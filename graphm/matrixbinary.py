@@ -1,5 +1,5 @@
 #from graphm.amatrix import AMatrix
-import random
+import random as rnd
 from graphm.amatrix import AMatrix
 
 class MatrixBinary(AMatrix):
@@ -9,11 +9,10 @@ class MatrixBinary(AMatrix):
 	with usage of integers (binary) for representation of list of booleans
 	for lines and columns
 	
+	.. NOTE:: For inherited class variables see :class:`graphm.amatrix.AMatrix`
+	
 	.. CAUTION:: Instance variables
 	
-	:var int dimM: number of rows
-	:var int dimN: number of columns
-	:var list matrix: matrix with integers representation of lines
 	:var list/tuple matrixM: contents binary integers for rows
 	:var list/tuple matrixN: contents binary integers for columns
 	"""
@@ -37,13 +36,12 @@ class MatrixBinary(AMatrix):
 			:random: (tuple) dimensions for matrix (dimM: int, dimN: int)
 			:unity: (int) dimensions for square matrix
 			
+		For default options see :class:`AMatrix.__init__`
+			
 		:return: the matrix
 		:rtype: MatrixBinary
 		"""
-		if 'boolean' in d:
-			self.set_matrix_boolean(d['boolean'])
-		else:
-			super().__init__(**d)
+		super().__init__(**d)
 	
 	def __add__(self, matrix: 'MatrixBinary') -> 'MatrixBinary':
 		""" Return the result of a logical '|'  between values of instance and that passed in argument
@@ -586,25 +584,7 @@ class MatrixBinary(AMatrix):
 			+ "\n-------\n" \
 			+ "\n".join(MatrixBinary.get_int2str(n, self.dimM) for n in self.matrixN)
 	
-	def set_matrix(self, m) -> None:
-		""" Set content of the matrix  from the matrixM given and dimN
-		get a binary matrix contains a list of integers and with the number of columns
-		
-		:param tuple m: contains following indexes
-		
-			:matrixM: (list) rows with integers
-			:dimN: (int) the number of columns
-					
-		>>> m = MatrixBinary(matrix=([1, 4, 2], 5))
-		>>> m
-		00001,00100,00010
-		"""
-		matrixM, self.dimN = m
-		self.matrixM = matrixM[:]
-		self.dimM = len(self.matrixM)
-		self.matrixM2N()
-	
-	def set_matrix_boolean(self, matrix: list) -> None:
+	def set_from_boolean(self, boolean: list) -> None:
 		""" Set content of the matrix  from the boolean matrix given
 		get a boolean matrix containing list of string or list of list of integers
 		
@@ -622,6 +602,7 @@ class MatrixBinary(AMatrix):
 		>>> m
 		00001,00100,00010
 		"""
+		matrix = boolean
 		lenLine = len(matrix[0]) if matrix else 0
 		self._set_dim(len(matrix), lenLine)
 		
@@ -637,35 +618,59 @@ class MatrixBinary(AMatrix):
 		self.matrixM = matrixM
 		self.matrixM2N()
 	
-	def set_matrix_empty(self, dimM: int, dimN: int) -> None:
+	def set_from_empty(self, empty: tuple) -> None:
 		""" Set an empty matrix containing only 0
 		
-		:param int dimM: number of rows
-		:param int dimN: number of columns
+		:param tuple empty: containing 2 dimensions of matrix: (rows, columns)
+		
+			:dimM: (int) number of rows
+			:dimN: (int) number of columns
 		
 		>>> m = MatrixBinary(empty=(4,8))
 		>>> m
 		00000000,00000000,00000000,00000000
 		"""
+		dimM, dimN = empty
+		self._set_dim(dimM, dimN)
 		self.matrixM = [0 for _ in range(dimM)]
 		self.matrixN = [0 for _ in range(dimN)]
-		self._set_dim(dimM, dimN)
 	
-	def set_matrix_random(self, dimM: int, dimN: int, level: int=0, reflexive: bool=False) -> None:
+	def set_from_matrix(self, matrix) -> None:
+		""" Set content of the matrix  from the matrixM given and dimN
+		get a binary matrix contains a list of integers and with the number of columns
+		
+		:param tuple m: contains following indexes
+		
+			:matrixM: (list) rows with integers
+			:dimN: (int) the number of columns
+					
+		>>> m = MatrixBinary(matrix=([1, 4, 2], 5))
+		>>> m
+		00001,00100,00010
+		"""
+		matrixM, self.dimN = matrix
+		self.matrixM = matrixM[:]
+		self.dimM = len(self.matrixM)
+		self.matrixM2N()
+	
+	def set_from_random(self, random: tuple, level: int=0) -> None:
 		""" Set a matrix containing random booleans in integer representation
 		
 		the level represents the quantity of 0 compared to 1 (0-10)
 		Reflexivity is the possibility for one node to go to itself
 		
-		:param int dimM: number of rows
-		:param int dimN: number of columns
+		:param tuple random: containing 2 dimensions of matrix: (rows, columns)
+		
+			:dimM: (int) number of rows
+			:dimN: (int) number of columns
+		
 		:param int level=0: (0-10), quantity of 0 compared to 1
-		:param bool reflexive: if True allow reflexive nodes, default is False
 		
 		>>> m = MatrixBinary(random=(4,8))
 		>>> (m.dimM,m.dimN)
 		(4, 8)
 		"""
+		dimM, dimN = random
 		self._set_dim(dimM, dimN)
 		
 		# TOKEEP
@@ -686,10 +691,10 @@ class MatrixBinary(AMatrix):
 
 		matrixM = []
 		for _ in range(dimM):
-			j = random.randint(0,200)
+			j = rnd.randint(0,200)
 			matrixM.append(int("0b" + chars[level][j:j+dimN], 2))
 		# reflexivity
-		if not reflexive:
+		if not self.isreflexive:
 			unity_null = [''.join('1' if m != n else '0' for n in range(dimN)) for m in range(dimM)]
 			unity_null = [int("0b" + line, 2) for line in unity_null]
 			matrixM = [unity_null[i] & matrixM[i] for i in range(dimM) ]
@@ -697,10 +702,10 @@ class MatrixBinary(AMatrix):
 		self.matrixM = matrixM
 		self.matrixM2N()
 
-	def set_matrix_unity(self, dim: int) -> None:
+	def set_from_unity(self, unity: int) -> None:
 		""" Set an unity matrix: an empty square matrix with diagonal to 1
 
-		:param int dim: number of rows and columns
+		:param int unity: number of rows and columns
 		
 		>>> m = MatrixBinary(unity=4)
 		>>> print(m)
@@ -713,9 +718,10 @@ class MatrixBinary(AMatrix):
 		#self.matrixM = [int('0b' + ''.join(('1' if i == j else '0') for i in range(dim)), 2) for j in range(dim)]
 		#self.matrixN = [int('0b' + ''.join(('1' if i == j else '0') for i in range(dim)), 2) for j in range(dim)]
 
-		unity = (2**i for i in range(dim - 1, -1, -1))
-		self.matrixM = [i  for i in unity]
-		self.matrixN = [i  for i in unity]
+		dim = unity
+		matrix = (2**i for i in range(dim - 1, -1, -1))
+		self.matrixM = [i  for i in matrix]
+		self.matrixN = [i  for i in matrix]
 		self._set_dim(dim, dim)
 
 	def get_transpose(self) -> 'MatrixBinary':
