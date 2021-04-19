@@ -103,6 +103,23 @@ class GraphPert(Graph):
 		
 		return successors
 		
+	def get_ancestors_pert(self, pert: dict) -> tuple:
+		""" get successors from pert definition
+		"""
+		return {i: (opts[0].split(',') if opts[0] else ['>']) for i, opts in pert.items()}
+	
+	def merge_nodes(self, node_ref: str, nodes_merged: list, pert: dict) -> tuple:
+		pert_merged = {}
+		for index, data in pert.items():
+			nodes, value = data
+			if index in nodes_merged:
+				index = node_ref
+			if nodes:
+				nodes = {(node_ref if node in nodes_merged else node) for node in nodes.split(',')}
+				nodes = ','.join(nodes)
+			pert_merged[index] = (nodes, value)
+		return (self.get_ancestors_pert(pert_merged), self.get_successors_pert(pert_merged))
+	
 	def set_from_pert(self, pert: dict, **d) -> None:
 		""" Set the graph from pert, values and optionally edge names 
 		
@@ -133,9 +150,9 @@ class GraphPert(Graph):
 		self.node_end = d['node_end'] if 'node_end' in d else GraphPert.node_end
 		self.color_critical = d['color_critical'] if 'color_critical' in d else GraphPert.color_critical
 		
-		nodes_start = {i for i, v in pert.items() if not v[0]}
+		#nodes_start = {i for i, v in pert.items() if not v[0]}
 		
-		ancestors = {i: (opts[0] if opts[0] else '>')  for i, opts in  pert.items()}
+		ancestors = self.get_ancestors_pert(pert)
 		successors = self.get_successors_pert(pert)
 		
 		# initialize
@@ -143,37 +160,36 @@ class GraphPert(Graph):
 		edges_label = {}
 		edges_value = {}
 		edges_fictive = {}
-		c = 1
 		for node_end, data in pert.items():
 			nodes_start, value = data
 			
-			nodes_merged, nodes_fictive, nodes_ref = self.group_node_value(nodes_start, ancestors, successors)
+			node_ref, nodes_merged, nodes_fictive = self.group_node_value(nodes_start, ancestors, successors)
 			
-			for node in (nodes_merged | nodes_fictive):
-				edges_value[(node, node_end)] = value
-				c += 1
+			edges_value[(node_ref, node_end)] = value
+			
+			if nodes_merged:
+				ancestors, successors = self.merge_nodes(node_ref, nodes_merged, pert)
 			
 			for node in nodes_fictive:
-				node_ref = [i for i in nodes_ref if i != nodes_ref].pop()
 				edges_fictive[(node, node_ref)] = 0
-				c += 1
 			
-			"""
-			ancs = self.convert_nodes(data[0])
-			if not ancs:
-				ancs = ['>']
-			elif len(ancs) == 1:
-				anc = ancs[0]
-			else:
-				ancs_list = [i for j in ancs.split(',') for i in ancestors[j].split(',')]
-				tmp = {i: ancs_list.count(i) for i in set(ancs_list)}
-				tmp = [(j, i) for j in ancs.split(',') for i in ancestors[j].split(',')]
-			for anc in ancs:
-				successors[anc].append(edge)
-				edges_value[(anc, edge)] = value
-			"""
-		self.set_down(successors, edges_value)
-		
+		self.set_down(successors, edges_value, edges_label, nodes_values)
+
+	"""
+	ancs = self.convert_nodes(data[0])
+	if not ancs:
+		ancs = ['>']
+	elif len(ancs) == 1:
+		anc = ancs[0]
+	else:
+		ancs_list = [i for j in ancs.split(',') for i in ancestors[j].split(',')]
+		tmp = {i: ancs_list.count(i) for i in set(ancs_list)}
+		tmp = [(j, i) for j in ancs.split(',') for i in ancestors[j].split(',')]
+	for anc in ancs:
+		successors[anc].append(edge)
+		edges_value[(anc, edge)] = value
+	"""
+	
 	def group_node_value(self, nodes: list, ancestors: dict, successors: dict) -> tuple:
 		"""
 		
@@ -189,38 +205,56 @@ class GraphPert(Graph):
 		elif len(nodes) == 1:
 			ref = nodes[0]
 		else:
+			
+			print('gag')
 			# all ancestors from all nodes
-			ancestors_nodes_all = [ancestor for node in nodes for ancestor in ancestors[node].split(',')]
+			ancestors_nodes_all = [ancestor for node in nodes for ancestor in ancestors[node]]
 			# counted grouped ancestors
 			ancestors_nodes_count = {ancestor: ancestors_nodes_all.count(ancestor) for ancestor in set(ancestors_nodes_all)}
 			# conflicted ancestors and its nodes
 			ancestors_conflict_nodes = {ancestor: [node for node in nodes if ancestor in ancestors[node]] for ancestor, count in ancestors_nodes_count.items() if count > 1}
+			# conflicted ancestors and its nodes
+			ancestors_indy_nodes = {ancestor: [node for node in nodes if ancestor in ancestors[node]] for ancestor, count in ancestors_nodes_count.items() if count == 1}
+			# all nodes from ancestors_conflict_nodes
+			nodes_conflict = [node for nodes in ancestors_conflict_nodes.values() for node in nodes]
+			# all nodes from ancestors_unique_nodes, a set coz successors of unique are node
+			nodes_indy = {node for nodes in ancestors_indy_nodes.values() for node in nodes}
 			
 			# all nodes and its ancestors
-			nodes_ancestors = {node: [ancestor for ancestor in ancestors[node].split(',')] for node in nodes}
+			#nodes_ancestors = {node: [ancestor for ancestor in ancestors[node]] for node in nodes}
 			#nodes_ancestors_count = {node: max(ancestors_nodes_count[c] for c in ancestors) for node, ancestors in nodes_ancestors.items()}
 			# Count number of children for the ancestor of node => give the number of brothers by node
-			nodes_brothers_count = {node: sum(ancestors_nodes_count[a] for a in ancestors) for node, ancestors in nodes_ancestors.items()}
+			#nodes_brothers_count = {node: sum(ancestors_nodes_count[a] for a in ancestors) for node, ancestors in nodes_ancestors.items()}
 			# nodes with no common ancestors, wich have no brothers
-			nodes_ancestors_unique = {node for node, count in nodes_brothers_count.items() if count == 1}
+			#nodes_ancestors_unique = [node for node, count in nodes_brothers_count.items() if count == 1]
 			# nodes with common ancestors, wich have brothers
-			nodes_ancestors_conflict = [node for node, count in nodes_brothers_count.items() if count > 1]
+			#nodes_ancestors_conflict = [node for node, count in nodes_brothers_count.items() if count > 1]
 			
 			# list of all chidren of the conflicted ancestors
-			nodes_ancestors_conflict_nodes = [i for l in ancestors_conflict_nodes.values() for i in l]
+			#nodes_ancestors_conflict_nodes = [i for l in ancestors_conflict_nodes.values() for i in l]
 			
+			#if len(nodes_ancestors_conflict_nodes) == len(set(nodes_ancestors_conflict_nodes)):
 			# test if in each nodes in each group are different
-			if len(nodes_ancestors_conflict_nodes) == len(set(nodes_ancestors_conflict_nodes)):
-				if nodes_ancestors_unique:
-					ref = nodes_ancestors_unique.pop()
-					for nodes in nodes_ancestors_unique.values():
-						merged.exte
+			
+			if len(nodes_conflict) == len(set(nodes_conflict)):
+				if nodes_indy:
+					ref = nodes_indy.pop()
+					merged.extend(nodes_indy)
+					for nodes in ancestors_conflict_nodes.values():
+						# pop one element for each independent group of conflicted ancestors
+						if ref in nodes:
+							nodes.remove(ref)
+						else:
+							merged.append(nodes.pop())
+						fictive.extend(nodes)
+				else:
 					for nodes in ancestors_conflict_nodes.values():
 						# pop one element for each independent group of conflicted ancestors 
-						nodes.pop()
+						ref = nodes.pop()
 						fictive.extend(nodes)
+					
 
-		return (ref, fictive)
+		return (ref, merged, fictive)
 
 		"""
 		{(anc if anc else '>'): edge for edge, data in pert.items() for anc in data[0]}
@@ -246,12 +280,13 @@ class GraphPert(Graph):
 			else:
 				edges.extend((i, edge) for i in data)
 		"""
-
-	def set_down(self, successors: dict, edges_values: dict, nodes_values: dict) -> None:
+	def set_down(self, successors: dict, edges_value: dict, edges_label: dict, nodes_values: dict) -> None:
 		""" Define value of nodes by a DFS
 		"""
+		edges_new = {}
+		index = 1
 		paths = [[self.node_start]]
-
+		
 		# no successors with or without itself
 		if not successors:
 			paths = []
@@ -260,12 +295,16 @@ class GraphPert(Graph):
 			paths_tmp = paths
 			paths = []
 			for path in paths_tmp:
-				path_successors = successors[path[-1]]
+				node_act = path[-1]
+				path_successors = successors[node_act]
 				for node in path_successors:
-					self.set_node_value(nodes_values, node, 0, value)
+					# edges
+					edges_new[(node_act, index)] = edges_values[(node_act, node)]
+					# nodes
+					self.set_node_value(nodes_values, node, index, edges_value[(node_act, node)])
 					if node != self.node_end:
 						paths.append(path + [node])
-				# clean paths if reached
+					index += 1
 	
 	def set_node_value(self, nodes_values: dict, node: str, index: int, value: int) -> None:
 		# down

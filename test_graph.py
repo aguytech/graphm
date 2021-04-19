@@ -12,6 +12,9 @@ g.draw('files/pert2.svg', ext='svg', graph_attr={'rankdir':'LR'})
 pert = [('A', 'D'), ('A', 'E'), ('A', 'X'), ('A', 'Y'), ('>', 'Z'), ('B', 'G'), ('B', 'I'), ('B', 'Y'), ('C', 'J'), ('D', 'C'), ('D', 'F'), ('E', 'F'), ('F', 'H'), ('G', 'F'), ('H', 'J'), ('I', 'K'), ('I', 'F'), ('J', '<'), ('K', 'H'), ('L', '<'), ('X', 'F'), ('Y', 'F'), ('Z', 'F'), ('>', 'A'), ('>', 'B'), ('>', 'L')]
 g = Graph(edges=pert)
 g.draw('files/pert3.svg', ext='svg', graph_attr={'rankdir':'LR'})
+pert = [('A', 'D'), ('A', 'E'), ('A', 'X'), ('A', 'Y'), ('>', 'Z'), ('L', 'Z2'), ('B', 'G'), ('B', 'I'), ('B', 'Y'), ('C', 'J'), ('D', 'C'), ('D', 'F'), ('E', 'F'), ('F', 'H'), ('G', 'F'), ('H', 'J'), ('I', 'K'), ('I', 'F'), ('J', '<'), ('K', 'H'), ('L', '<'), ('X', 'F'), ('Y', 'F'), ('Z', 'F'), ('Z2', 'F'), ('>', 'A'), ('>', 'B'), ('>', 'L')]
+g = Graph(edges=pert)
+g.draw('files/pert4.svg', ext='svg', graph_attr={'rankdir':'LR'})
 
 		
 """
