@@ -3,7 +3,16 @@ from graphm import Graph
 
 g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'], nodes='a,b,c,d,e,f,g,h,i,j', node_style='int')
 print(g)
-		
+pert = [('>', 'A'), ('>', 'B'), ('D', 'C'), ('A', 'D'), ('A', 'E'), ('D', 'F'), ('E', 'F'), ('G', 'F'), ('B', 'G'), ('F', 'H'), ('K', 'H'), ('B', 'I'), ('C', 'J'), ('H', 'J'), ('I', 'K'), ('>', 'L'), ('J', '<'), ('L', '<')]
+g = Graph(edges=pert)
+g.draw('files/pert.svg', ext='svg', graph_attr={'rankdir':'LR'})
+pert = [('A', 'D'), ('A', 'E'), ('A', 'X'), ('A', 'Y'), ('>', 'Z'), ('B', 'G'), ('B', 'I'), ('C', 'J'), ('D', 'C'), ('D', 'F'), ('E', 'F'), ('F', 'H'), ('G', 'F'), ('H', 'J'), ('I', 'K'), ('I', 'F'), ('J', '<'), ('K', 'H'), ('L', '<'), ('X', 'F'), ('Y', 'F'), ('Z', 'F'), ('>', 'A'), ('>', 'B'), ('>', 'L')]
+g = Graph(edges=pert)
+g.draw('files/pert2.svg', ext='svg', graph_attr={'rankdir':'LR'})
+pert = [('A', 'D'), ('A', 'E'), ('A', 'X'), ('A', 'Y'), ('>', 'Z'), ('B', 'G'), ('B', 'I'), ('B', 'Y'), ('C', 'J'), ('D', 'C'), ('D', 'F'), ('E', 'F'), ('F', 'H'), ('G', 'F'), ('H', 'J'), ('I', 'K'), ('I', 'F'), ('J', '<'), ('K', 'H'), ('L', '<'), ('X', 'F'), ('Y', 'F'), ('Z', 'F'), ('>', 'A'), ('>', 'B'), ('>', 'L')]
+g = Graph(edges=pert)
+g.draw('files/pert3.svg', ext='svg', graph_attr={'rankdir':'LR'})
+
 		
 """
 	GRAPH

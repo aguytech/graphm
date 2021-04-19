@@ -6,7 +6,7 @@ class Graph:
 	Data is directly stored in :class:`pygraphviz.Agraph`
 
 	Drawing is supported by writing file in 'dot' format 
-	(others layout are availables :class:`GraphM.layout`)
+	(others available layouts are :class:`GraphM.layout`)
 	
 	:var str node_style: default style to generate nodes
 	
@@ -238,7 +238,7 @@ class Graph:
 			options:
 				**dot** / circo, dot, fdp, neato, osage, patchwork, twopi
 			
-			full options regadless implementaion :
+			full options according to its implementation:
 				**png** / canon, cmap, cmapx, cmapx_np, dia, dot, fig, gd, gd2, gif, hpgl, imap,
 				imap_np, ismap, jpe, jpeg, jpg, mif, mp, pcl, pdf, pic, plain, plain-ext,
 				png, ps, ps2, svg, svgz, vml, vmlz, vrml, vtx, wbmp, xdot, xlib

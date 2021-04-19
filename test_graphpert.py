@@ -1,20 +1,30 @@
-import graphm
 from graphm import GraphPert
 
-g = GraphPert(nodes=['A','B','C','D','E'])
-print(g)
-g = GraphPert(edges='A-D,D-A,D-C,C-A,B-C,B-B')
-print(g)
-
-g = GraphPert(boolean=['00010', '01100', '10000', '10100', '00000'])
-g.set_nodes(nodes='UU,V,X,Y,Z,T')
-g.viz.nodes()
+pert = {'A': ('', 2), 'B': ('', 3), 'C': ('D', 5), 'D': ('A', 2), 'E': ('A', 1), 'F': ('D,E,G', 3), 'G': ('B', 2), 'H': ('F,K', 2), 'I': ('B', 1), 'J': ('C,H', 2), 'K': ('I', 3), 'L': ('', 10), '<': ('J,L', 0)}
+pert = {'A': ('', 2), 'B': ('', 3), 'C': ('D', 5), 'D': ('A', 2), 'E': ('A', 1), 'F': ('D,E,G,X,Y,I,Z', 3), 'G': ('B', 2), 'H': ('F,K', 2), 'I': ('B', 1), 'J': ('C,H', 2), 'K': ('I', 3), 'L': ('', 10), 'X':('A', 3), 'Y':('A,B', 3), 'Z':('', 3), '<': ('J,L', 0)}
+g = GraphPert(pert=pert)
 print(g)
 
-g = GraphPert(boolean=[[0,0,0,1], [0,0,1,0], [0,0,0,1], [1,0,1,1]])
-print(g)
-		
-		
+
+"""
+g = GraphPert(ancestors={
+	'A': ('', 2),
+	'B': ('', 3),
+	'C': ('D', 5),
+	'D': ('A', 2),
+	'E': ('A', 1),
+	'F': ('D,E,G', 3),
+	'G': ('B', 2),
+	'H': ('F,K', 2),
+	'I': ('B', 1),
+	'J': ('C,H', 2),
+	'K': ('I', 3),
+	'L': ('', 10),
+	'A': ('', 2),
+	'<': ('J,L', 0),
+	})
+"""
+
 """
 	GRAPH
 file = "files/grah_bin_01"
