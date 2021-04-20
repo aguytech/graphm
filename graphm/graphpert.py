@@ -93,26 +93,26 @@ class GraphPert(Graph):
 	def get_successors(self) -> dict:
 		""" get successors from self matrix
 		"""
-		return {self.nodes[m]: [self.nodes[n] for n in range(self.dim) if self.matrix[m][n] != 0] for m in range(self.dim)}
+		return {self.nodes[m]: [self.nodes[n] for n in range(self.dim) if self.matrix[m][n] != None] for m in range(self.dim)}
 		
 	def get_ancestors(self) -> dict:
 		""" get ancestors from self matrix
 		"""
-		return {self.nodes[n]: [self.nodes[m] for m in range(self.dim) if self.matrix[m][n] != 0] for n in range(self.dim)}
+		return {self.nodes[n]: [self.nodes[m] for m in range(self.dim) if self.matrix[m][n] != None] for n in range(self.dim)}
 	
 	def merge_nodes(self, node_ref: str, nodes_merged: list) -> None:
 		def merge(matrix):
 			for node in nodes_merged:
 				# rows
 				for n in range(self.dim):
-					if matrix[self.nodes_i[node]][n] != 0:
+					if matrix[self.nodes_i[node]][n] != None:
 						matrix[self.nodes_i[node_ref]][n] = matrix[self.nodes_i[node]][n]
-						matrix[self.nodes_i[node]][n] = 0
+						matrix[self.nodes_i[node]][n] = None
 				# columns
 				for m in range(self.dim):
-					if matrix[m][self.nodes_i[node]] != 0:
+					if matrix[m][self.nodes_i[node]] != None:
 						matrix[m][self.nodes_i[node_ref]] = matrix[m][self.nodes_i[node]]
-						matrix[m][self.nodes_i[node]] = 0
+						matrix[m][self.nodes_i[node]] = None
 		
 		merge(self.matrix)
 		merge(self.matrix_fictive)
@@ -191,8 +191,8 @@ class GraphPert(Graph):
 		
 			 Nodes in argument are ancestors of treated node
 		"""
-		merged = []
-		fictive = []
+		merged = set()
+		fictive = set()
 		if not nodes:
 			ref = '>'
 		elif len(nodes) == 1:
@@ -211,7 +211,7 @@ class GraphPert(Graph):
 			# all nodes from ancestors_conflict_nodes
 			nodes_conflict = [node for nodes in ancestors_conflict_nodes.values() for node in nodes]
 			# all nodes from ancestors_unique_nodes, a set coz successors of unique are node
-			nodes_conflict_unique = {node for nodes in ancestors_conflict_nodes.values() for node in nodes}
+			##nodes_conflict_unique = {node for nodes in ancestors_conflict_nodes.values() for node in nodes}
 			# all nodes from ancestors_unique_nodes, a set coz successors of unique are node
 			nodes_indy = {node for nodes in ancestors_indy_nodes.values() for node in nodes}
 			# conflicted ancestors and its dependent unique nodes (nodes with only one ancestor)
@@ -236,33 +236,35 @@ class GraphPert(Graph):
 			#nodes_conflict_count = {ancestor: {node: nodes_conflict.count(node) for node in nodes} for ancestor, nodes  in ancestors_conflict_nodes.items()}
 			"""
 			
-			nodes_indy = nodes_indy - nodes_conflict_unique
+			#nodes_indy = nodes_indy - nodes_conflict_unique
 				
 			#if len(nodes_ancestors_conflict_nodes) == len(set(nodes_ancestors_conflict_nodes)):
 			# test if in each nodes in each group are different
 			if nodes_indy:
 				# indy
 				ref = nodes_indy.pop()
-				merged.extend(nodes_indy)
+				merged |= nodes_indy
 				
 				# conflicting
 				# TODO to improve following rules, look for each group wich on can be merge with node in other group, group by group
 				# merge only node with unique ancestor 
 				for k, nodes in ancestors_conflict_nodes_unique.items():
-					poped = nodes.pop(0)
-					merged.append(poped)
+					poped = nodes.pop()
+					merged.add(poped)
 					ancestors_conflict_nodes[k].remove(poped)
 					# fictive
-					fictive.extend(ancestors_conflict_nodes[k])
+					fictive |= set(ancestors_conflict_nodes[k])
 			else:
 				# TODO to improve following rules, look for each group wich on can be merge with node in other group, group by group
 				# merge only node with unique ancestor 
 				for k, nodes in ancestors_conflict_nodes_unique.items():
-					poped = nodes.pop(0)
-					merged.append(poped)
-					ancestors_conflict_nodes[k].remove(poped)
+					ref = nodes.pop()
+					# pop only when others groups exists
+					if len(ancestors_conflict_nodes_unique) > 1:
+						merged.add(poped)
+					ancestors_conflict_nodes[k].remove(ref)
 					# fictive
-					fictive.extend(ancestors_conflict_nodes[k])
+					fictive |= set(ancestors_conflict_nodes[k])
 
 		return (ref, merged, fictive)
 
@@ -325,7 +327,7 @@ class GraphPert(Graph):
 			if value < nodes_values[node][index]:
 				nodes_values[node][index] = value
 
-	def set_nodes_fictive(self, node_ref, nodes_fictive: list) -> None:
+	def set_nodes_fictive(self, node_ref, nodes_fictive: set) -> None:
 		for node in nodes_fictive:
 			self.matrix_fictive[self.nodes_i[node]][self.nodes_i[node_ref]] = 1
 
@@ -339,8 +341,8 @@ class GraphPert(Graph):
 		self.nodes_i = {node: i for i, node in enumerate(self.nodes)}
 		
 		self.dim = len(self.nodes)
-		self.matrix = [[0 for _ in range(self.dim)] for _ in range(self.dim)]
-		self.matrix_fictive = [[0 for _ in range(self.dim)] for _ in range(self.dim)]
+		self.matrix = [[None for _ in range(self.dim)] for _ in range(self.dim)]
+		self.matrix_fictive = [[None for _ in range(self.dim)] for _ in range(self.dim)]
 		
 		for node_end, data in pert.items():
 			nodes_start, value = data

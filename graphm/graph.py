@@ -78,6 +78,7 @@ class Graph:
 		
 			* matrix
 						
+		 		| **matrix** get a matrix (None is default value)
 		 		| **boolean** get a boolean matrix
 				| **binary** get a binary matrixM and dimN
 		
@@ -88,6 +89,7 @@ class Graph:
 
 		:param dict \*\*d: options to specify the type of matrix
 		
+			:matrix: (list[int]) matrix in [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...)
 			:boolean: (list[int]) matrix in [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...)
 			:binary: matrixM in [int, ...]
 			:edges: (tuple/list) list of edges in tuple format (nodeIn, nodeOut)
@@ -129,7 +131,7 @@ class Graph:
 
 		# call the good method to initialize object
 		initialized = False
-		for attr in ('boolean', 'binary', 'pert'):
+		for attr in ('matrix', 'boolean', 'binary', 'pert'):
 			if attr in d:
 				self._call_init(f"set_from_{attr}", **d)
 				initialized = True
@@ -466,6 +468,52 @@ class Graph:
 
 		matrixS = [[str(matrix[m][n]) for n in range(dim)] for m in range(dim)]
 		edges = [(nodes[m], nodes[n]) for m in range(dim) for n in range(dim) if matrixS[m][n] != '0']
+		
+		self.set_edges(edges)
+
+	def set_from_matrix(self, matrix: iter, **d) -> None:
+		""" Set viz graph from a common matrix and nodes if given.
+		
+		Get a common matrix containing 2 dimensions of rows and columns.
+		(default value is None)
+		Support several formats.
+			
+		:param iter matrix: square matrix in formats [[int,...], ...] or ((int,...), ...) 
+		:param dict \*\*d: containing matrix and optionally nodes, node_style
+		
+			:nodes: (iter(str)) names of nodes
+			:dim: (int) number of nodes (needed if nodes are empty)
+			:node_style: (str) node name generation style: 'str' or 'int' 
+						
+				default: :class:`Graph.node_style`
+		
+		>>> g = Graph(matrix=['00010', '01100', '10000', '10100', '00000'])
+		>>> print(g)
+		nodes=5 edges=6
+		nodes A B C D E
+		edges A-D B-B B-C C-A D-A D-C
+		
+		>>> g = Graph(matrix=[['0','0','0','1'], ['0','0','1','0'], ['1','0','0','0'], ['1','0','1','0']])
+		>>> print(g)
+		nodes=4 edges=5
+		nodes A B C D
+		edges A-D B-C C-A D-A D-C
+		
+		>>> g = Graph(matrix=[[0,0,0,1], [0,0,1,0], [0,0,0,1], [1,0,1,1]])
+		>>> print(g)
+		nodes=4 edges=6
+		nodes A B C D
+		edges A-D B-C C-D D-A D-C D-D
+		"""
+		if not matrix:
+			raise ValueError("Wrong empty matrix")
+		
+		dim = len(matrix)
+		nodes = self.set_nodes(dim=dim, cut=True, **d)
+
+		# TODO add label to edges
+		#edges = [(nodes[m], nodes[n], matrix[m][n]) for m in range(dim) for n in range(dim) if matrix[m][n] != None]
+		edges = [(nodes[m], nodes[n]) for m in range(dim) for n in range(dim) if matrix[m][n] != None]
 		
 		self.set_edges(edges)
 

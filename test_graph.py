@@ -25,6 +25,16 @@ nodes = ['>', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'X', '
 g = Graph(boolean=matrix, nodes=nodes)
 g.draw('files/pert-inter.svg', ext='svg', graph_attr={'rankdir':'LR'})
 
+matrix	= [[0, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 3, 0], [0, 0, 0, 0, 2, 1, 0, 2, 0, 0, 0, 0, 0, 0, 3, 3, 0], [0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 3, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 5, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+nodes = ['>', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'X', 'Y', 'Z', '<']
+g = Graph(boolean=matrix, nodes=nodes)
+g.draw('files/pert-inter2.svg', ext='svg', graph_attr={'rankdir':'LR'})
+
+matrix	= [[None, 2, 3, None, None, None, None, None, None, None, None, None, 10, None, None, 3, None], [None, None, None, None, 2, 1, None, 2, None, None, None, None, None, 3, 3, None, None], [None, None, None, None, None, None, None, 2, None, 1, None, None, None, None, 3, None, None], [None, None, None, None, None, None, None, None, None, None, 2, None, None, None, None, None, None], [None, None, None, 5, None, None, 3, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, 3, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, None, 2, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, 3, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, None, None, None, 2, None, None, None, None, None, None], [None, None, None, None, None, None, 3, None, None, None, None, 3, None, None, None, None, None], [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, 0], [None, None, None, None, None, None, None, None, 2, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, 0], [None, None, None, None, None, None, 3, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, 3, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, 3, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]]
+nodes = ['>', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'X', 'Y', 'Z', '<']
+g = Graph(matrix=matrix, nodes=nodes)
+g.draw('files/pert-inter3.svg', ext='svg', graph_attr={'rankdir':'LR'})
+
 """
 	GRAPH
 file = "files/grah_bin_01"
