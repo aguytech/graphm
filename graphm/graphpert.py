@@ -90,36 +90,33 @@ class GraphPert(Graph):
 		'fontname' : 'Arial',
 		}
 	
-	def get_successors_pert(self, pert: dict) -> dict:
-		""" get successors from pert definition
+	def get_successors(self) -> dict:
+		""" get successors from self matrix
 		"""
-		successors = {i: [] for i in pert.keys()}
-		successors['>'] = []
-		for node_end, data in pert.items():
-			nodes_start, _ = data
-			nodes_start = self.convert_nodes(nodes_start) if nodes_start else ['>'] 
-			for node in nodes_start:
-				successors[node].append(node_end)
+		return {self.nodes[m]: [self.nodes[n] for n in range(self.dim) if self.matrix[m][n] != 0] for m in range(self.dim)}
 		
-		return successors
-		
-	def get_ancestors_pert(self, pert: dict) -> tuple:
-		""" get successors from pert definition
+	def get_ancestors(self) -> dict:
+		""" get ancestors from self matrix
 		"""
-		return {i: (opts[0].split(',') if opts[0] else ['>']) for i, opts in pert.items()}
+		return {self.nodes[n]: [self.nodes[m] for m in range(self.dim) if self.matrix[m][n] != 0] for n in range(self.dim)}
 	
-	def merge_nodes(self, node_ref: str, nodes_merged: list, pert: dict) -> tuple:
-		pert_merged = {}
-		for index, data in pert.items():
-			nodes, value = data
-			if index in nodes_merged:
-				index = node_ref
-			if nodes:
-				nodes = {(node_ref if node in nodes_merged else node) for node in nodes.split(',')}
-				nodes = ','.join(nodes)
-			pert_merged[index] = (nodes, value)
-		return (self.get_ancestors_pert(pert_merged), self.get_successors_pert(pert_merged))
-	
+	def merge_nodes(self, node_ref: str, nodes_merged: list) -> None:
+		def merge(matrix):
+			for node in nodes_merged:
+				# rows
+				for n in range(self.dim):
+					if matrix[self.nodes_i[node]][n] != 0:
+						matrix[self.nodes_i[node_ref]][n] = matrix[self.nodes_i[node]][n]
+						matrix[self.nodes_i[node]][n] = 0
+				# columns
+				for m in range(self.dim):
+					if matrix[m][self.nodes_i[node]] != 0:
+						matrix[m][self.nodes_i[node_ref]] = matrix[m][self.nodes_i[node]]
+						matrix[m][self.nodes_i[node]] = 0
+		
+		merge(self.matrix)
+		merge(self.matrix_fictive)
+			
 	def set_from_pert(self, pert: dict, **d) -> None:
 		""" Set the graph from pert, values and optionally edge names 
 		
@@ -149,31 +146,28 @@ class GraphPert(Graph):
 		self.node_start = d['node_start'] if 'node_start' in d else GraphPert.node_start
 		self.node_end = d['node_end'] if 'node_end' in d else GraphPert.node_end
 		self.color_critical = d['color_critical'] if 'color_critical' in d else GraphPert.color_critical
-		
-		#nodes_start = {i for i, v in pert.items() if not v[0]}
-		
-		ancestors = self.get_ancestors_pert(pert)
-		successors = self.get_successors_pert(pert)
+		self.set_matrices(pert)
 		
 		# initialize
-		nodes_values = {i: [0, 0] for i in successors.keys()}
+		ancestors = self.get_ancestors()
+		nodes_values = {i: [0, 0] for i in self.nodes}
 		edges_label = {}
 		edges_value = {}
-		edges_fictive = {}
-		for node_end, data in pert.items():
-			nodes_start, value = data
+		
+		iter_nodes = iter(self.nodes)
+		next(iter_nodes)
+		for node in iter_nodes:
+			nodes = ancestors[node]
+			node_ref, nodes_merged, nodes_fictive = self.group_nodes(ancestors[node], ancestors)
 			
-			node_ref, nodes_merged, nodes_fictive = self.group_node_value(nodes_start, ancestors, successors)
-			
-			edges_value[(node_ref, node_end)] = value
+			if nodes_fictive:
+				self.set_nodes_fictive(node_ref, nodes_fictive)
 			
 			if nodes_merged:
-				ancestors, successors = self.merge_nodes(node_ref, nodes_merged, pert)
+				self.merge_nodes(node_ref, nodes_merged)
+				ancestors = self.get_ancestors()
 			
-			for node in nodes_fictive:
-				edges_fictive[(node, node_ref)] = 0
-			
-		self.set_down(successors, edges_value, edges_label, nodes_values)
+		self.set_down(edges_value, edges_label, nodes_values)
 
 	"""
 	ancs = self.convert_nodes(data[0])
@@ -190,7 +184,7 @@ class GraphPert(Graph):
 		edges_value[(anc, edge)] = value
 	"""
 	
-	def group_node_value(self, nodes: list, ancestors: dict, successors: dict) -> tuple:
+	def group_nodes(self, nodes: list, ancestors: dict) -> tuple:
 		"""
 		
 		.. IMPORTANT:: To well understand
@@ -199,7 +193,6 @@ class GraphPert(Graph):
 		"""
 		merged = []
 		fictive = []
-		nodes = self.convert_nodes(nodes)
 		if not nodes:
 			ref = '>'
 		elif len(nodes) == 1:
@@ -211,48 +204,65 @@ class GraphPert(Graph):
 			ancestors_nodes_all = [ancestor for node in nodes for ancestor in ancestors[node]]
 			# counted grouped ancestors
 			ancestors_nodes_count = {ancestor: ancestors_nodes_all.count(ancestor) for ancestor in set(ancestors_nodes_all)}
-			# conflicted ancestors and its nodes
+			# conflicted ancestors and its dependent nodes
 			ancestors_conflict_nodes = {ancestor: [node for node in nodes if ancestor in ancestors[node]] for ancestor, count in ancestors_nodes_count.items() if count > 1}
 			# conflicted ancestors and its nodes
 			ancestors_indy_nodes = {ancestor: [node for node in nodes if ancestor in ancestors[node]] for ancestor, count in ancestors_nodes_count.items() if count == 1}
 			# all nodes from ancestors_conflict_nodes
 			nodes_conflict = [node for nodes in ancestors_conflict_nodes.values() for node in nodes]
 			# all nodes from ancestors_unique_nodes, a set coz successors of unique are node
+			nodes_conflict_unique = {node for nodes in ancestors_conflict_nodes.values() for node in nodes}
+			# all nodes from ancestors_unique_nodes, a set coz successors of unique are node
 			nodes_indy = {node for nodes in ancestors_indy_nodes.values() for node in nodes}
+			# conflicted ancestors and its dependent unique nodes (nodes with only one ancestor)
+			ancestors_conflict_nodes_unique =  {ancestor: [node for node in nodes if nodes_conflict.count(node) == 1] for ancestor, nodes  in ancestors_conflict_nodes.items()}
 			
+			"""
+
 			# all nodes and its ancestors
-			#nodes_ancestors = {node: [ancestor for ancestor in ancestors[node]] for node in nodes}
-			#nodes_ancestors_count = {node: max(ancestors_nodes_count[c] for c in ancestors) for node, ancestors in nodes_ancestors.items()}
+			nodes_ancestors = {node: [ancestor for ancestor in ancestors[node]] for node in nodes}
+			nodes_ancestors_count = {node: max(ancestors_nodes_count[c] for c in ancestors) for node, ancestors in nodes_ancestors.items()}
 			# Count number of children for the ancestor of node => give the number of brothers by node
-			#nodes_brothers_count = {node: sum(ancestors_nodes_count[a] for a in ancestors) for node, ancestors in nodes_ancestors.items()}
+			nodes_brothers_count = {node: sum(ancestors_nodes_count[a] for a in ancestors) for node, ancestors in nodes_ancestors.items()}
 			# nodes with no common ancestors, wich have no brothers
-			#nodes_ancestors_unique = [node for node, count in nodes_brothers_count.items() if count == 1]
+			nodes_ancestors_unique = [node for node, count in nodes_brothers_count.items() if count == 1]
 			# nodes with common ancestors, wich have brothers
-			#nodes_ancestors_conflict = [node for node, count in nodes_brothers_count.items() if count > 1]
+			nodes_ancestors_conflict = [node for node, count in nodes_brothers_count.items() if count > 1]
 			
 			# list of all chidren of the conflicted ancestors
-			#nodes_ancestors_conflict_nodes = [i for l in ancestors_conflict_nodes.values() for i in l]
+			nodes_ancestors_conflict_nodes = [i for l in ancestors_conflict_nodes.values() for i in l]
+
+			# count each nodes for conflicted ancestors
+			#nodes_conflict_count = {ancestor: {node: nodes_conflict.count(node) for node in nodes} for ancestor, nodes  in ancestors_conflict_nodes.items()}
+			"""
 			
+			nodes_indy = nodes_indy - nodes_conflict_unique
+				
 			#if len(nodes_ancestors_conflict_nodes) == len(set(nodes_ancestors_conflict_nodes)):
 			# test if in each nodes in each group are different
-			
-			if len(nodes_conflict) == len(set(nodes_conflict)):
-				if nodes_indy:
-					ref = nodes_indy.pop()
-					merged.extend(nodes_indy)
-					for nodes in ancestors_conflict_nodes.values():
-						# pop one element for each independent group of conflicted ancestors
-						if ref in nodes:
-							nodes.remove(ref)
-						else:
-							merged.append(nodes.pop())
-						fictive.extend(nodes)
-				else:
-					for nodes in ancestors_conflict_nodes.values():
-						# pop one element for each independent group of conflicted ancestors 
-						ref = nodes.pop()
-						fictive.extend(nodes)
-					
+			if nodes_indy:
+				# indy
+				ref = nodes_indy.pop()
+				merged.extend(nodes_indy)
+				
+				# conflicting
+				# TODO to improve following rules, look for each group wich on can be merge with node in other group, group by group
+				# merge only node with unique ancestor 
+				for k, nodes in ancestors_conflict_nodes_unique.items():
+					poped = nodes.pop(0)
+					merged.append(poped)
+					ancestors_conflict_nodes[k].remove(poped)
+					# fictive
+					fictive.extend(ancestors_conflict_nodes[k])
+			else:
+				# TODO to improve following rules, look for each group wich on can be merge with node in other group, group by group
+				# merge only node with unique ancestor 
+				for k, nodes in ancestors_conflict_nodes_unique.items():
+					poped = nodes.pop(0)
+					merged.append(poped)
+					ancestors_conflict_nodes[k].remove(poped)
+					# fictive
+					fictive.extend(ancestors_conflict_nodes[k])
 
 		return (ref, merged, fictive)
 
@@ -315,9 +325,30 @@ class GraphPert(Graph):
 			if value < nodes_values[node][index]:
 				nodes_values[node][index] = value
 
+	def set_nodes_fictive(self, node_ref, nodes_fictive: list) -> None:
+		for node in nodes_fictive:
+			self.matrix_fictive[self.nodes_i[node]][self.nodes_i[node_ref]] = 1
 
-
-
+	def set_matrices(self, pert):
+		# nodes
+		self.nodes = [k for k in pert.keys()]
+		self.nodes.sort()
+		self.nodes.remove(self.node_end)
+		self.nodes.append(self.node_end)
+		self.nodes.insert(0, self.node_start)
+		self.nodes_i = {node: i for i, node in enumerate(self.nodes)}
+		
+		self.dim = len(self.nodes)
+		self.matrix = [[0 for _ in range(self.dim)] for _ in range(self.dim)]
+		self.matrix_fictive = [[0 for _ in range(self.dim)] for _ in range(self.dim)]
+		
+		for node_end, data in pert.items():
+			nodes_start, value = data
+			if not nodes_start:
+				nodes_start = self.node_start
+			nodes_start = self.convert_nodes(nodes_start)
+			for node_start in nodes_start:
+				self.matrix[self.nodes_i[node_start]][self.nodes_i[node_end]] = value
 
 
 

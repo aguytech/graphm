@@ -211,11 +211,11 @@ class Graph:
 		return edges
 
 	def convert_nodes(self, nodes: iter) -> list:
-		""" Convert edges to list of single elements
+		""" Convert nodes to list of single elements
 		
-		:param list edges: edges of graph
+		:param list nodes: nodes of graph
 		
-		:return: edges in single elements
+		:return: nodes in single elements
 		:rtype: list
 		"""
 		if not nodes:
@@ -465,7 +465,7 @@ class Graph:
 		nodes = self.set_nodes(dim=dim, cut=True, **d)
 
 		matrixS = [[str(matrix[m][n]) for n in range(dim)] for m in range(dim)]
-		edges = [(nodes[m], nodes[n]) for m in range(dim) for n in range(dim) if matrixS[m][n] == '1']
+		edges = [(nodes[m], nodes[n]) for m in range(dim) for n in range(dim) if matrixS[m][n] != '0']
 		
 		self.set_edges(edges)
 
