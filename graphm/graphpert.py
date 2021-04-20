@@ -211,7 +211,7 @@ class GraphPert(Graph):
 			# all nodes from ancestors_conflict_nodes
 			nodes_conflict = [node for nodes in ancestors_conflict_nodes.values() for node in nodes]
 			# all nodes from ancestors_unique_nodes, a set coz successors of unique are node
-			##nodes_conflict_unique = {node for nodes in ancestors_conflict_nodes.values() for node in nodes}
+			nodes_conflict_unique = {node for nodes in ancestors_conflict_nodes.values() for node in nodes}
 			# all nodes from ancestors_unique_nodes, a set coz successors of unique are node
 			nodes_indy = {node for nodes in ancestors_indy_nodes.values() for node in nodes}
 			# conflicted ancestors and its dependent unique nodes (nodes with only one ancestor)
@@ -236,7 +236,8 @@ class GraphPert(Graph):
 			#nodes_conflict_count = {ancestor: {node: nodes_conflict.count(node) for node in nodes} for ancestor, nodes  in ancestors_conflict_nodes.items()}
 			"""
 			
-			#nodes_indy = nodes_indy - nodes_conflict_unique
+			# remove conflicting nodes from independent nodes if nodes appears in the 2 groups
+			nodes_indy = nodes_indy - nodes_conflict_unique
 				
 			#if len(nodes_ancestors_conflict_nodes) == len(set(nodes_ancestors_conflict_nodes)):
 			# test if in each nodes in each group are different
@@ -248,21 +249,22 @@ class GraphPert(Graph):
 				# conflicting
 				# TODO to improve following rules, look for each group wich on can be merge with node in other group, group by group
 				# merge only node with unique ancestor 
-				for k, nodes in ancestors_conflict_nodes_unique.items():
-					poped = nodes.pop()
-					merged.add(poped)
-					ancestors_conflict_nodes[k].remove(poped)
+				for k, nodes in ancestors_conflict_nodes.items():
+					if ancestors_conflict_nodes_unique[k]:
+						poped = nodes.pop()
+						nodes.remove(poped)
+						merged.add(poped)
 					# fictive
-					fictive |= set(ancestors_conflict_nodes[k])
+					fictive |= set(nodes)
 			else:
 				# TODO to improve following rules, look for each group wich on can be merge with node in other group, group by group
 				# merge only node with unique ancestor 
 				for k, nodes in ancestors_conflict_nodes_unique.items():
 					ref = nodes.pop()
+					ancestors_conflict_nodes[k].remove(ref)
 					# pop only when others groups exists
 					if len(ancestors_conflict_nodes_unique) > 1:
 						merged.add(poped)
-					ancestors_conflict_nodes[k].remove(ref)
 					# fictive
 					fictive |= set(ancestors_conflict_nodes[k])
 
