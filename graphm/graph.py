@@ -206,9 +206,12 @@ class Graph:
 				edges = [[i for i in edge.split('-')] for edge in edges]
 		# dict
 		elif isinstance(edges, dict):
-			edges = [(str(a), str(b)) for a, b in edges.items()]
+			edges = [(str(d[0]), str(d[1]), str(d[:2])) for d in edges.items()]
 		else:
-			edges = [(str(a), str(b)) for a, b in edges]
+			if len(edges[0]) == 3:
+				edges = [(str(u), str(v), str(l)) for u,v, l in edges]
+			else:
+				edges = [(str(d[0]), str(d[1]), str(d[2:] if d[2:] else '')) for d in edges]
 		
 		return edges
 
@@ -511,9 +514,7 @@ class Graph:
 		dim = len(matrix)
 		nodes = self.set_nodes(dim=dim, cut=True, **d)
 
-		# TODO add label to edges
-		#edges = [(nodes[m], nodes[n], matrix[m][n]) for m in range(dim) for n in range(dim) if matrix[m][n] != None]
-		edges = [(nodes[m], nodes[n]) for m in range(dim) for n in range(dim) if matrix[m][n] != None]
+		edges = [(nodes[m], nodes[n], matrix[m][n]) for m in range(dim) for n in range(dim) if matrix[m][n] != None]
 		
 		self.set_edges(edges)
 
@@ -598,7 +599,6 @@ class Graph:
 		self.init_attrs()
 		self.update_attrs(**d)
 
-	# TODO
 	def set_edges(self, edges: iter) -> None:
 		""" Add edges to viz
 		
@@ -617,9 +617,10 @@ class Graph:
 		# remove existing nodes
 		self.viz.remove_edges_from(self.viz.edges())
 		
-		edges = self.convert_edges(edges)
 		# add to viz
-		self.viz.add_edges_from(edges)
+		edges = self.convert_edges(edges)
+		for u, v, l in edges:
+			self.viz.add_edge(u, v, label=l)
 
 	def set_nodes(self, cut :bool=False, **d) -> list:
 		""" Add nodes to viz from:
