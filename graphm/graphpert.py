@@ -68,7 +68,7 @@ class GraphPert(Graph):
 	"""
 	node_start = '>'
 	node_end = '<'
-	edge_fictive = '--'
+	sep = ','
 	color_critical = 'red'
 	layout = {
 		'prog' : 'dot',
@@ -285,7 +285,8 @@ class GraphPert(Graph):
 		
 			:index: (str) edge
 			:value: tuple with edge ancestors, values of edge
-							Contains tuple (: iter, value: int, label: str) 
+				Contains tuple (: iter, value: int, label: str)
+			 
 				 #. ancestors (iter) in formats str  or [str,...] or (str, ...)
 				 #. value (int)
 			 
@@ -307,7 +308,7 @@ class GraphPert(Graph):
 		# comes from the arguments given otherwise from the graph 
 		self.node_start = d['node_start'] if 'node_start' in d else GraphPert.node_start
 		self.node_end = d['node_end'] if 'node_end' in d else GraphPert.node_end
-		self.edge_fictive = d['edge_fictive'] if 'edge_fictive' in d else GraphPert.edge_fictive
+		self.sep = d['sep'] if 'sep' in d else GraphPert.sep
 		self.color_critical = d['color_critical'] if 'color_critical' in d else GraphPert.color_critical
 		# simple initialization
 		self.nodes_values = {}
