@@ -18,6 +18,10 @@ class Graph:
 			
 			**dot** / neato, dot, twopi, circo, fdp, nop
 
+	:var str sep: default separator for elements in string like optionally for node, edges
+	
+		**,**
+	
 	:var dict graph_attr: default attributes for graph, see :class:`pygraphviz.Agraph`
 	
 		:directed: (bool) directed graph or not
@@ -54,6 +58,7 @@ class Graph:
 	layout = {
 		'prog' : 'dot',
 		}
+	sep = ','
 	graph_attr = {
 		'label' : 'G',
 		'directed' : True,
@@ -94,6 +99,7 @@ class Graph:
 			:binary: matrixM in [int, ...]
 			:edges: (tuple/list) list of edges in tuple format (nodeIn, nodeOut)
 			:nodes: (tuple/list) optional list of nodes
+			:sep: (str) separator for elements in string like optionally for node, edges,  see :class:`Graph.sep`
 
 			for **nodes**
 			
@@ -125,6 +131,7 @@ class Graph:
 		edges a-d b-b b-c c-a d-a d-c
 		"""
 		self.layout = Graph.layout.copy()
+		self.sep = d['sep'] if 'sep' in d else Graph.sep
 		
 		# viz
 		self.set_viz(**d)
