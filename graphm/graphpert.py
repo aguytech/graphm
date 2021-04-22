@@ -92,20 +92,17 @@ class GraphPert(Graph):
 		'fontname' : 'Arial',
 		}
 	
-	def add_node_value(self, node_i: int, index: int, value: int, way: str) -> None:
-		"""
-		.. IMPORTANT node_i is numeric index if matrix value from matrix
-		"""
+	def add_node_value(self, node: int, index: int, value: int, way: str) -> None:
 		# index, value_down, value_back
 		
 		# down
 		if way == 'down':
-			self.nodes_values[node_i][0] = index
-			if value > self.nodes_values[node_i][1]:
-				self.nodes_values[node_i][1] = value
+			self.nodes_values[node][0] = index
+			if value > self.nodes_values[node][1]:
+				self.nodes_values[node][1] = value
 		else:
-			if value < self.nodes_values[node_i][2]:
-				self.nodes_values[node_i][2] = value
+			if value < self.nodes_values[node][2]:
+				self.nodes_values[node][2] = value
 
 	def matrix_add_fictives(self, node_ref: str, nodes_fictive: set, node_old: str) -> None:
 		for node in nodes_fictive:
@@ -147,28 +144,31 @@ class GraphPert(Graph):
 		self.nodes = [node for node in self.nodes if node not in nodes_merged]
 		self.nodes_i = {node: i for i, node in enumerate(self.nodes)}
 			
-	def get_ancestors(self, label: bool=False) -> dict:
+	def get_ancestors(self, label: bool=True) -> dict:
 		""" get ancestors from self matrix
+		
+		dict of set
 		"""
 		if label:
-			ancestors = {self.nodes[n]: [self.nodes[m] for m in range(self.dim) if self.matrix[m][n] != None and isinstance(self.matrix[m][n], str)] for n in range(self.dim)}
+			ancestors = {self.nodes[n]: {self.nodes[m] for m in range(self.dim) if self.matrix[m][n] != None and isinstance(self.matrix[m][n], str)} for n in range(self.dim)}
 		else:
-			ancestors = {n: [m for m in range(self.dim) if self.matrix[m][n] != None and isinstance(self.matrix[m][n], str)] for n in range(self.dim)}
+			ancestors = {n: {m for m in range(self.dim) if self.matrix[m][n] != None and isinstance(self.matrix[m][n], str)} for n in range(self.dim)}
 		return ancestors
 	
-	def get_successors(self, label: bool=False) -> dict:
+	def get_successors(self, label: bool=True) -> dict:
 		""" get successors from self matrix
+		dict of set
 		"""
 		if label:
-			ancestors = {self.nodes[m]: [self.nodes[n] for n in range(self.dim) if self.matrix[m][n] != None and isinstance(self.matrix[m][n], str)] for m in range(self.dim)}
+			ancestors = {self.nodes[m]: {self.nodes[n] for n in range(self.dim) if self.matrix[m][n] != None and isinstance(self.matrix[m][n], str)} for m in range(self.dim)}
 		else:
-			ancestors = {m: [n for n in range(self.dim) if self.matrix[m][n] != None and isinstance(self.matrix[m][n], str)] for m in range(self.dim)}
+			ancestors = {m: {n for n in range(self.dim) if self.matrix[m][n] != None and isinstance(self.matrix[m][n], str)} for m in range(self.dim)}
 		return ancestors
 		
-	def get_paths(self) -> tuple:
-		""" get paths of edges existings in the graph
+	def set_paths(self, nodes: list) -> list:
+		""" get edges from nodes with matrix
 		"""
-		return tuple(self.matrix[i-1][i] for i in range(1, len(self.paths) - 1))
+		self.paths_edges.add(tuple(self.matrix[self.nodes_i[nodes[i-1]]][self.nodes_i[nodes[i]]] for i in range(1, len(nodes) - 1)))
 		
 	def group_nodes(self, nodes: list, ancestors: dict) -> tuple:
 		"""
@@ -261,32 +261,42 @@ class GraphPert(Graph):
 		.. IMPORTANT:: node here is the numeric value in matrix
 		
 		"""
-	successors = self.get_successors()
-	for path in self.paths:
-		path.reverse()
-		path.pop()
-		for node_i in path:
-			if len(successors[node_i]) == 1:
-				successor = successors[node_i][0]
-				value = self.edges_value[self.matrix[node_i][successor]]
-				self.nodes_values[node_i][2] = 
+		successors = self.get_successors()
+		nodes_all = set(self.nodes)
+		nodes_visited = {self.node_end}
+		paths = [i[1:][::-1] for i in self.paths]
+		while nodes_all != nodes_visited:
+			breakit = False
+			for path in paths[:]:
+				if breakit:
+					break
+				for node in path:
+					if not successors[node].issubset(nodes_visited):
+						breakit = True
+						break
+					if len(successors[node]) == 1:
+						value = self.edges_value[self.matrix[node][successors[node][0]]]
+						successor = successors[node][0]
+						self.nodes_values[node][2] = self.edges_value[successor] - self.edges_value[successor]
+					else:
+						for successor in successors[node]:
+							pass
+					nodes_visited.add(node)
+				paths.remove(path)
 			
 
 	def set_down(self):
 		""" Define value of nodes by a DFS
-		
-		.. IMPORTANT:: node here is the numeric value in matrix
-		
 		"""
 		index_nodes = 0
 		index_ranks = 0
-		nodes_ranked = {0}
-		self.ranks = {0: {0}}
+		nodes_ranked = {self.node_start}
+		self.ranks = {0: {self.node_start}}
 		successors = self.get_successors()
-		paths = [[0]]
+		paths = [[self.node_start]]
 		# index, value_down, value_back
-		self.nodes_values = {i: [None, 0, 0] for i in range(self.dim)}
-		self.nodes_values[0] = [0,0,0]
+		self.nodes_values = {node: [None, 0, 0] for node in self.nodes}
+		self.nodes_values[self.node_start] = [0,0,0]
 		
 		while paths:
 			index_ranks += 1
@@ -309,14 +319,14 @@ class GraphPert(Graph):
 						index_nodes += 1
 					
 					# nodes
-					value = self.edges_value[self.nodes[node]]
+					value = self.edges_value[node]
 					self.add_node_value(node, index_nodes, value, 'down')
 
 					# paths
-					if node != self.dim - 1:
+					if node != self.node_end:
 						paths.append(path + [node])
 					else:
-						self.paths.append([path + [node]])
+						self.paths.append(path + [node])
 
 	def set_from_pert(self, pert: dict, **d) -> None:
 		""" Set the graph from pert, values and optionally edge names 
@@ -363,7 +373,7 @@ class GraphPert(Graph):
 			exit("The data of pert is empty ;o)")
 
 		# initialize
-		ancestors = self.get_ancestors(label=True)
+		ancestors = self.get_ancestors()
 		nodes_merged_all = set()
 		
 		"""
@@ -387,7 +397,7 @@ class GraphPert(Graph):
 			if nodes_merged:
 				nodes_merged_all.update(nodes_merged)
 				self.matrix_merge_nodes(node_ref, nodes_merged, node)
-				ancestors = self.get_ancestors(label=True)
+				ancestors = self.get_ancestors()
 		"""
 		graph_matrices.append(copym(self.matrix))
 		graph_nodes.append(copyn(self.nodes))
