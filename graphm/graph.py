@@ -130,8 +130,9 @@ class Graph:
 		nodes a b c d e
 		edges a-d b-b b-c c-a d-a d-c
 		"""
-		self.layout = Graph.layout.copy()
-		self.sep = d['sep'] if 'sep' in d else Graph.sep
+		# TODO: remove
+		#self.layout = Graph.layout.copy()
+		#self.sep = d['sep'] if 'sep' in d else Graph.sep
 		
 		# viz
 		self.set_viz(**d)
@@ -382,7 +383,7 @@ class Graph:
 		[('directed', 'True'), ('label', 'G'), ('rankdir', 'TB'), ('ranksep', '0.5'), ('strict', 'False')]
 		"""
 		for attr_name in ('graph_attr', 'node_attr', 'edge_attr'):
-			attr = getattr(Graph, attr_name)
+			attr = getattr(self, attr_name)
 			attr_viz = getattr(self.viz, attr_name)
 			attr_viz.update(attr)
 
@@ -597,12 +598,16 @@ class Graph:
 			:edge_attr: (dict) default attributes for edges, see :attr:`Graph.edge_attr`
 		"""
 		# Need to give graph_attr in __init__, for at least 'strict'
-		graph_attr = Graph.graph_attr.copy()
+		# TODO: remove
+		#graph_attr = Graph.graph_attr.copy()
+		#if 'graph_attr' in d:
+		#	graph_attr.update(d['graph_attr'])
 		if 'graph_attr' in d:
-			graph_attr.update(d['graph_attr'])
+			self.graph_attr.update(d['graph_attr'])
 		
-		self.viz = pygraphviz.AGraph(**graph_attr)
+		self.viz = pygraphviz.AGraph(**self.graph_attr)
 		
+		# TODO: remove
 		self.init_attrs()
 		self.update_attrs(**d)
 
