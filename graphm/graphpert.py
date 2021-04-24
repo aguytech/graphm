@@ -103,7 +103,7 @@ class GraphPert(Graph):
 	def add_edges(self, **d) -> None:
 		""" Add edges to viz from:
 		"""
-		style_fictional = {'style': 'gray35', 'style': 'dashed'}
+		style_fictional = {'color': 'dodgerblue4', 'style': 'dashed'}
 		
 		# add to viz
 		for m in range(self.dim):
@@ -124,19 +124,18 @@ class GraphPert(Graph):
 		def rjust(*values) -> list:
 			values = [str(i) for i in values]
 			len_max = max({len(i) for i in values})
-			""" try to put more spaces
-			diff = (max({len(i) for i in values}) - min({len(i) for i in values}))
-			sdiff = ' ' * diff * 4
-			return [(sdiff+i if len(i) < len_max else i) for i in values]
-			"""
 			return [i.rjust(len_max, ' ') for i in values]
+		
+		for rank, nodes in self.ranks.items():
+			sb = self.viz.add_subgraph(name=f"rank{rank}", rank="same")
 			
-		for node, data in self.nodes_values.items():
-			index, value_down, value_back = data
-			value_down, value_back = str(value_down), str(value_back)
-			#value_down, value_back = rjust(value_down, value_back)
-			# add to viz
-			self.viz.add_node(node, label=f"_{index}_\n{value_down} | {value_back}")
+			sb.add_node(f"r{rank}")
+			for node in nodes:
+				index, value_down, value_back = self.nodes_values[node]
+				value_down, value_back = str(value_down), str(value_back)
+				#value_down, value_back = rjust(value_down, value_back)
+				# add to viz
+				sb.add_node(node, label=f"_{index}_\n{value_down} | {value_back}")
 
 	def add_node_index(self, node: int, index: int) -> None:
 		self.nodes_values[node][0] = index
@@ -190,11 +189,13 @@ class GraphPert(Graph):
 	def add_timeline(self, **d) -> None:
 		""" Add nodes to viz from:
 		"""
-		# rank
-		sb_tl = self.viz.add_subgraph(name='timeline', node_attr={'fixedsize' : True, 'width' : 0.5})
-		sb_tl.graph_attrupdate(d[attr_name])
+		# rank subgraph
+		sb_tl = self.viz.add_subgraph(name='timeline')
+		sb_tl.node_attr.update(fixedsize=True, width=0.5, fontcolor='blue')
+		sb_tl.edge_attr.update(fontcolor='red')
+		
 		for i in self.ranks.keys():
-			sb_tl.add_node(f"r{i}")
+			sb_tl.add_node(f"r{i}", width=0.5)
 		for i in range(1, len(self.ranks)):
 			sb_tl.add_edge(f"r{i - 1}", f"r{i}", label=i)
 		sb_tl.layout(prog='dot')
