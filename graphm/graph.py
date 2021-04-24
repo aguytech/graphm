@@ -309,11 +309,14 @@ class Graph:
 		
 		.
 		"""
+		# TODO: remove
+		print(self.viz)
+		
 		# viz
-		self.update_attrs(**d)
+		self.update_attrs(self.viz, **d)
 		
 		# draw
-		# TODO
+		# TODO:
 		#self.viz.layout(prog=self.layout['prog'])
 		self.viz.layout(**self.layout)
 		self.viz.draw(path, ext)
@@ -364,10 +367,11 @@ class Graph:
 
 		return nodes
 		
+	@staticmethod
 	def init_attrs(self) -> None:
 		""" Set default viz attributes to drawing with default class attributes for viz
 		
-			See :attr:`Graph.layout`, :attr:`Graph.graph_attr`, :attr:`Graph.node_attr`, :attr:`Graph.edge_attr` in :class:`Graph`
+			See :attr: attr:`Graph.graph_attr`, :attr:`Graph.node_attr`, :attr:`Graph.edge_attr` in :class:`Graph`
 
 		>>> g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'])
 		>>> list(g.viz.graph_attr.items())
@@ -609,7 +613,7 @@ class Graph:
 		
 		# TODO: remove
 		self.init_attrs()
-		self.update_attrs(**d)
+		self.update_attrs(self.viz, **d)
 
 	def set_edges(self, edges: iter) -> None:
 		""" Add edges to viz
@@ -708,27 +712,25 @@ class Graph:
 		"""
 		return ' '.join(i+'-'+j for i,j in self.viz.edges()) if self.viz.edges else ''
 
-	def update_attrs(self, **d) -> None:
+	@staticmethod
+	def update_attrs(viz, **d) -> None:
 		""" Add viz attributes to drawing
 		
 		:param dict \*\*d: options to specify arguments to :class:`pygraphviz.AGraph`
 		
-			See :attr:`Graph.layout`, :attr:`Graph.graph_attr`, :attr:`Graph.node_attr`, :attr:`Graph.edge_attr` in :class:`Graph`
+			See :attr:`Graph.graph_attr`, :attr:`Graph.node_attr`, :attr:`Graph.edge_attr` in :class:`Graph`
 
 		>>> g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'])
 		>>> list(g.viz.graph_attr.items())
 		[('directed', 'True'), ('label', 'G'), ('rankdir', 'TB'), ('ranksep', '0.5'), ('strict', 'False')]
 
-		>>> g.update_attrs(graph_attr={'label':'new', 'margin':0.2})
+		>>> g.update_attrs(g.viz, graph_attr={'label':'new', 'margin':0.2})
 		>>> list(g.viz.graph_attr.items())
 		[('directed', 'True'), ('label', 'new'), ('margin', '0.2'), ('rankdir', 'TB'), ('ranksep', '0.5'), ('strict', 'False')]
 		"""
-		if 'layout' in d:
-			self.layout.update(d['layout'])
-		
 		for attr_name in ('graph_attr', 'node_attr', 'edge_attr'):
 			if attr_name in d:
-				attr_viz = getattr(self.viz, attr_name)
+				attr_viz = getattr(viz, attr_name)
 				attr_viz.update(d[attr_name])
 
 

@@ -74,33 +74,70 @@ class GraphPert(Graph):
 		'prog' : 'dot',
 		}
 	graph_attr = {
-		'label' : 'Pert',
 		'directed' : True,
 		'rankdir' : 'LR',
 		'ranksep' : "0.5",
 		'strict' : False,
-		'margin' : 0.01,
+		'margin' : 0.02,
+		'fontsize' : 14,
+		'fontname' : 'Arial',
+		'label' : 'Pert',
 		}
 	node_attr = {
-		'color' : 'chocolate4',
-		'fontcolor' : 'chocolate4',
-		'fontname' : 'Arial',
+		'fixedsize' : True,
+		'width' : 0.7,
+		'margin': 0.01,
 		'shape' : 'circle',
+		'color' : 'black',
+		'fontsize' : 11,
+		'fontname' : 'Arial',
+		'fontcolor' : 'black',
 		}
 	edge_attr = {
 		'color' : 'gray30',
-		'fontcolor' : 'gray30',
+		'fontsize' : 10,
 		'fontname' : 'Arial',
+		'fontcolor' : 'gray25',
 		}
 	
-	def add_path_critical(self, node: int, node_scs: int) -> None:
-		# paths
-		if self.nodes_values[node][1] == self.nodes_values[node][2] and node_scs in self.paths_critical:
-			if node in self.paths_critical:
-				self.paths_critical[node].add(node_scs)
-			else:
-				self.paths_critical[node] = {node_scs}
+	def add_edges(self, **d) -> None:
+		""" Add edges to viz from:
+		"""
+		style_fictional = {'style': 'gray35', 'style': 'dashed'}
 		
+		# add to viz
+		for m in range(self.dim):
+			for n in range(self.dim):
+				if self.matrix[m][n]:
+					edge = self.matrix[m][n]
+					# regular edges
+					if isinstance(edge, str): 
+						self.viz.add_edge(m, n, label=f"{edge}.{self.edges_value[edge]}")
+					# fictional edges
+					else:
+						edge = edge.pop()
+						self.viz.add_edge(m, n, label=f"{edge}.0", **style_fictional)
+				
+	def add_nodes(self, **d) -> None:
+		""" Add nodes to viz from:
+		"""
+		def rjust(*values) -> list:
+			values = [str(i) for i in values]
+			len_max = max({len(i) for i in values})
+			""" try to put more spaces
+			diff = (max({len(i) for i in values}) - min({len(i) for i in values}))
+			sdiff = ' ' * diff * 4
+			return [(sdiff+i if len(i) < len_max else i) for i in values]
+			"""
+			return [i.rjust(len_max, ' ') for i in values]
+			
+		for node, data in self.nodes_values.items():
+			index, value_down, value_back = data
+			value_down, value_back = str(value_down), str(value_back)
+			#value_down, value_back = rjust(value_down, value_back)
+			# add to viz
+			self.viz.add_node(node, label=f"_{index}_\n{value_down} | {value_back}")
+
 	def add_node_index(self, node: int, index: int) -> None:
 		self.nodes_values[node][0] = index
 		
@@ -142,6 +179,26 @@ class GraphPert(Graph):
 				if value_from - value_edge < self.nodes_values[node][2]:
 					self.nodes_values[node][2] = value_from - value_edge
 
+	def add_path_critical(self, node: int, node_scs: int) -> None:
+		# paths
+		if self.nodes_values[node][1] == self.nodes_values[node][2] and node_scs in self.paths_critical:
+			if node in self.paths_critical:
+				self.paths_critical[node].add(node_scs)
+			else:
+				self.paths_critical[node] = {node_scs}
+		
+	def add_timeline(self, **d) -> None:
+		""" Add nodes to viz from:
+		"""
+		# rank
+		sb_tl = self.viz.add_subgraph(name='timeline', node_attr={'fixedsize' : True, 'width' : 0.5})
+		sb_tl.graph_attrupdate(d[attr_name])
+		for i in self.ranks.keys():
+			sb_tl.add_node(f"r{i}")
+		for i in range(1, len(self.ranks)):
+			sb_tl.add_edge(f"r{i - 1}", f"r{i}", label=i)
+		sb_tl.layout(prog='dot')
+			
 	def matrix_add_fictionals(self, node_ref: str, nodes_fictional: set, node_old: str) -> None:
 		for node in nodes_fictional:
 			self.matrix[self.nodes_i[node]][self.nodes_i[node_ref]] = [node]
@@ -297,6 +354,18 @@ class GraphPert(Graph):
 
 		return (ref, merged, fictional)
 
+	def reset_nodes(self, **d) -> None:
+		""" remove all nodes in viz
+		"""
+		# remove existing nodes
+		self.viz.remove_nodes_from(self.viz.nodes())
+
+	def reset_edges(self, **d) -> None:
+		""" remove all edges in viz
+		"""
+		# remove existing nodes
+		self.viz.remove_edges_from(self.viz.edges())
+		
 	def set_back(self):
 		""" Define value of nodes by a DFS
 		
@@ -343,7 +412,7 @@ class GraphPert(Graph):
 		index_nodes = 0
 		index_ranks = 0
 		nodes_visited = {0}
-		self.ranks = {0: {0}}
+		ranks = {0: {0}}
 		successors = self.get_successors(fictional=True)
 		paths = [[0]]
 		# index, value_down, value_back
@@ -352,7 +421,7 @@ class GraphPert(Graph):
 		
 		while paths:
 			index_ranks += 1
-			self.ranks[index_ranks] = set()
+			ranks[index_ranks] = set()
 			paths_tmp = paths
 			paths = []
 			for path in paths_tmp:
@@ -368,7 +437,7 @@ class GraphPert(Graph):
 					if node not in nodes_visited:
 						index_nodes += 1
 						self.add_node_index(node, index_nodes)
-						self.ranks[index_ranks].add(node)
+						ranks[index_ranks].add(node)
 						nodes_visited.add(node)
 					
 					# nodes
@@ -379,10 +448,20 @@ class GraphPert(Graph):
 						paths.append(path + [node])
 					else:
 						self.paths_down.append(path + [node])
+						
+		# set ranks
+		self.set_ranks(ranks)
 		
 		# close with put the final value for the back
-		self.nodes_values[self.dim - 1][2] = self.nodes_values[self.dim - 1][1]
+		self.nodes_values[node_end][2] = self.nodes_values[node_end][1]
 
+	def set_ranks(self, ranks):
+		node_end = {self.dim - 1}
+		# reduce ranks of empty sets and remove ending node
+		self.ranks = {k: v.difference(node_end) for k, v in ranks.items() if v }
+		# add ending node at last rank
+		self.ranks[len(self.ranks) - 1].update(node_end)
+		
 	def set_from_pert(self, pert: dict, **d) -> None:
 		""" Set the graph from pert, values and optionally edge names 
 		
@@ -436,13 +515,13 @@ class GraphPert(Graph):
 		nodes_merged_all = set()
 		
 		"""
-		"""
 		graph_matrices = []
 		graph_nodes = []
 		def copym(m): return [[i for i in l] for l in m]
 		def copyn(n): return [i for i in n]
 		graph_matrices.append(copym(self.matrix))
 		graph_nodes.append(copyn(self.nodes))
+		"""
 		
 		ancestors2group = {n: a for n, a in ancestors.items() if len(a) > 1 and n != self.node_end}
 		for node, nodes_ancestor in ancestors2group.items():
@@ -458,19 +537,20 @@ class GraphPert(Graph):
 		self.matrix_reduce_nodes(nodes_merged_all)
 
 		"""
-		"""
 		graph_matrices.append(copym(self.matrix))
 		graph_nodes.append(copyn(self.nodes))
 		for i in range(len(graph_matrices)):
 			g = Graph(matrix=graph_matrices[i], nodes=graph_nodes[i])
 			g.draw(f"files/pert-inter5-{i}.svg", ext='svg', graph_attr={'rankdir':'LR'}, edge_attr={'fontsize':12})
+		"""
 
 		self.set_down()
 		self.set_back()
-		self.set_nodes()
-		self.set_edges()
+		self.add_timeline()
+		self.add_nodes()
+		self.add_edges()
 		
-		self.draw('files/pert_first.svg', ext='svg', node_attr={'shape':'box', 'width':0.1,'height':0.1,'margin':0.01})
+		self.draw('files/pert_first.svg', ext='svg')
 		print('gag')
 		
 	def set_matrices(self, pert):
@@ -501,32 +581,16 @@ class GraphPert(Graph):
 				#self.matrix[self.nodes_i[node_start]][self.nodes_i[node_end]] = node_end + str(self.edges_value[node_end])
 
 	def set_nodes(self, **d) -> None:
-		""" Add nodes to viz from:
+		""" Set nodes to viz from:
 		"""
-		# remove existing nodes
-		self.viz.remove_nodes_from(self.viz.nodes())
-		
-		for node, data in self.nodes_values.items():
-			index, value_down, value_back = data
-			# add to viz
-			self.viz.add_node(node, label=f"_{index}_\n{value_down}|{value_back}")
+		self.reset_nodes()
+		self.add_nodes()
 
 	def set_edges(self, **d) -> None:
 		""" Add edges to viz from:
 		"""
-		# remove existing nodes
-		self.viz.remove_edges_from(self.viz.edges())
-		
-		# add to viz
-		for m in range(self.dim):
-			for n in range(self.dim):
-				if self.matrix[m][n]:
-					edge = self.matrix[m][n]
-					if isinstance(edge, str): 
-						self.viz.add_edge(m, n, label=f"{edge}.{self.edges_value[edge]}")
-					else:
-						edge = edge.pop()
-						self.viz.add_edge(m, n, label=f"{edge}.{self.edges_value[edge]}", style="dashed")
+		self.reset_edges()
+		self.add_edges()
 				
 
 
