@@ -100,7 +100,21 @@ class GraphPert(Graph):
 		'fontcolor' : 'gray25',
 		}
 	
-	def add_edges(self, **d) -> None:
+	def add_critical(self) -> None:
+		""" Add critical path to viz from:
+		"""
+		# rank subgraph
+		sb_tl = self.viz.add_subgraph(name='timeline')
+		sb_tl.node_attr.update(fixedsize=True, width=0.5, fontcolor='blue')
+		sb_tl.edge_attr.update(fontcolor='red')
+		
+		for i in self.ranks.keys():
+			sb_tl.add_node(f"r{i}", width=0.5)
+		for i in range(1, len(self.ranks)):
+			sb_tl.add_edge(f"r{i - 1}", f"r{i}", label=i)
+		sb_tl.layout(prog='dot')
+
+	def add_edges(self) -> None:
 		""" Add edges to viz from:
 		"""
 		style_fictional = {'color': 'dodgerblue4', 'style': 'dashed'}
@@ -118,7 +132,7 @@ class GraphPert(Graph):
 						edge = edge.pop()
 						self.viz.add_edge(m, n, label=f"{edge}.0", **style_fictional)
 				
-	def add_nodes(self, **d) -> None:
+	def add_nodes(self) -> None:
 		""" Add nodes to viz from:
 		"""
 		def rjust(*values) -> list:
@@ -137,8 +151,16 @@ class GraphPert(Graph):
 				# add to viz
 				sb.add_node(node, label=f"_{index}_\n{value_down} | {value_back}")
 
+		"""
+		old brut fashion
+		for node, data in self.nodes_values.items():
+			index, value_down, value_back = data
+			# add to viz
+			self.viz.add_node(node, label=f"_{index}_\n{value_down}|{value_back}")
+		"""
+
 	def add_node_index(self, node: int, index: int) -> None:
-		self.nodes_values[node][0] = index
+		pass
 		
 	def add_node_value_down(self, node_from: str, node: int) -> None:
 		"""
@@ -271,10 +293,10 @@ class GraphPert(Graph):
 		dict of set
 		"""
 		if fictional:
-			ancestors = {m: {n for n in range(self.dim) if self.matrix[m][n] != None} for m in range(self.dim)}
+			successors = {m: {n for n in range(self.dim) if self.matrix[m][n] != None} for m in range(self.dim)}
 		else:
-			ancestors = {m: {n for n in range(self.dim) if self.matrix[m][n] != None and isinstance(self.matrix[m][n], str)} for m in range(self.dim)}
-		return ancestors
+			successors = {m: {n for n in range(self.dim) if self.matrix[m][n] != None and isinstance(self.matrix[m][n], str)} for m in range(self.dim)}
+		return successors
 		
 	def group_nodes(self, nodes: list, ancestors: dict) -> tuple:
 		"""
@@ -283,6 +305,18 @@ class GraphPert(Graph):
 		
 			 Nodes in argument are ancestors of treated node
 		"""
+		
+		def ref_max_scs(nodes: iter):
+			""" return the name of node which have the maximum of successors
+			stabilizes the final structure of the graph by optimizing the critical path according to the fictitious paths 
+			"""
+			# get nodes names of successors of all nodes 
+			successors = {self.nodes[m]: {self.nodes[n] for n in range(self.dim) if self.matrix[m][n] != None} for m in range(self.dim)}
+			# get number of successors of nodes (just one for each count)
+			refs_scs = {len(successors[node]): node for node in nodes}
+			# get the name of node of the maximum of successors
+			return refs_scs[max(refs_scs.keys())]
+			
 		ref = None
 		merged = set()
 		fictional = set()
@@ -313,14 +347,14 @@ class GraphPert(Graph):
 		# merge one node at least for each groups of ancestors in conflict
 		if len(ancestors_conflict_nodes_unique_exist) > 1 and len(ancestors_conflict_nodes_unique_exist) == len(ancestors_conflict_nodes):
 			# get one node in ancestors_conflict_nodes_unique
-			ref = {node for nodes in ancestors_conflict_nodes_unique.values() for node in nodes}.pop()
+			ref = ref_max_scs(node for nodes in ancestors_conflict_nodes_unique.values() for node in nodes)
 		# merge at least one node with another one in another group of ancestors in conflict
 		elif len(ancestors_conflict_nodes_unique_exist) > 1:
-			ref = {node for nodes in ancestors_conflict_nodes_unique.values() for node in nodes}.pop()
+			ref = ref_max_scs(node for nodes in ancestors_conflict_nodes_unique.values() for node in nodes)
 		# at lest ancestors group exists and at least an independent node 
 		elif ancestors_conflict_nodes_unique_exist and nodes_indy:
 			# get one node in ancestors_conflict_nodes
-			ref = {node for nodes in ancestors_conflict_nodes_unique.values() for node in nodes}.pop()
+			ref = ref_max_scs(node for nodes in ancestors_conflict_nodes_unique.values() for node in nodes)
 		elif nodes_indy:
 			# get node from independent nodes
 			ref = next(iter(nodes_indy))
@@ -410,19 +444,14 @@ class GraphPert(Graph):
 		
 		"""
 		node_end = self.dim - 1
-		index_nodes = 0
-		index_ranks = 0
 		nodes_visited = {0}
-		ranks = {0: {0}}
-		successors = self.get_successors(fictional=True)
 		paths = [[0]]
+		successors = self.get_successors(fictional=True)
 		# index, value_down, value_back
-		self.nodes_values = {i: [None, 0, -1] for i in range(self.dim)}
+		self.nodes_values = {i: [i, 0, -1] for i in range(self.dim)}
 		self.nodes_values[0] = [0,0,-1]
 		
 		while paths:
-			index_ranks += 1
-			ranks[index_ranks] = set()
 			paths_tmp = paths
 			paths = []
 			for path in paths_tmp:
@@ -434,14 +463,8 @@ class GraphPert(Graph):
 					if node in path:
 						exit(f"There is a descending cycle in your graph: {' '.join(path)} -> {node}")
 					
-					# rank
-					if node not in nodes_visited:
-						index_nodes += 1
-						self.add_node_index(node, index_nodes)
-						ranks[index_ranks].add(node)
-						nodes_visited.add(node)
-					
 					# nodes
+					nodes_visited.add(node)
 					self.add_node_value_down(node_ancestor, node)
 
 					# paths
@@ -450,19 +473,53 @@ class GraphPert(Graph):
 					else:
 						self.paths_down.append(path + [node])
 						
-		# set ranks
-		self.set_ranks(ranks)
-		
 		# close with put the final value for the back
 		self.nodes_values[node_end][2] = self.nodes_values[node_end][1]
 
-	def set_ranks(self, ranks):
-		node_end = {self.dim - 1}
-		# reduce ranks of empty sets and remove ending node
-		self.ranks = {k: v.difference(node_end) for k, v in ranks.items() if v }
-		# add ending node at last rank
-		self.ranks[len(self.ranks) - 1].update(node_end)
+	def set_ranks(self):
+		""" set ranks for nodes
+		"""
+		def add_last(node, rank, ranks):
+			""" use local parent variables: ranks, node_visited
+			""" 
+			if node in nodes_visited:
+				ranks = {k: v.difference({node}) for k,v in ranks.items()}
+			if rank in ranks:
+				ranks[rank].add(node)
+			else:
+				ranks[rank] = {node}
+				
+			return ranks
 		
+		node_end = self.dim - 1
+		successors = self.get_successors()
+		ranks = {i: set() for i in range(self.dim)}
+		ranks = {0: {0}}
+		rank = 0
+		nodes_visited = {0}
+		paths = [[0]]
+
+		while paths:
+			rank += 1
+
+			paths_tmp = paths
+			paths = []
+			for path in paths_tmp:
+				node_ancestor = path[-1]
+				nodes = successors[node_ancestor]
+
+				for node in nodes:
+					# rank
+					ranks = add_last(node, rank, ranks)
+					nodes_visited.add(node)
+					
+					# paths
+					if node != node_end:
+						paths.append(path + [node])
+					else:
+						self.paths_down.append(path + [node])
+		self.ranks = ranks
+				
 	def set_from_pert(self, pert: dict, **d) -> None:
 		""" Set the graph from pert, values and optionally edge names 
 		
@@ -547,7 +604,9 @@ class GraphPert(Graph):
 
 		self.set_down()
 		self.set_back()
+		self.set_ranks()
 		self.add_timeline()
+		self.add_critical()
 		self.add_nodes()
 		self.add_edges()
 		
