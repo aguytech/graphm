@@ -1,6 +1,5 @@
 from graphm import Graph
 
-
 class GraphPert(Graph):
 	""" Manage Pert graph.
 	
@@ -99,118 +98,115 @@ class GraphPert(Graph):
 		'fontcolor' : 'gray25',
 		}
 	
+	@staticmethod
+	def _dict_add(d: dict, index: int, item: iter) -> None:
+		""" add in place item in given dictionary
+		""" 
+		if index in d:
+			d[index].add(item)
+		else:
+			d[index] = {item}
+		
 	def add_critical(self) -> None:
 		""" Add critical path to viz from:
 		"""
-		# rank subgraph
-		sb = self.viz.add_subgraph(name='critical')
-		sb.node_attr.update(color='red', fontcolor='red')
-		sb.edge_attr.update(color='red', fontcolor='red')
+		sbu = self.viz.add_subgraph(name='cluster_0', label='', color='white')
+		#sbc = self.viz.add_subgraph(name='critical')
 		
-		# orders nodes in the critical paths to improve the unique one
-		# put the selected nodes in the last of list of nodes
-		for node_start, nodes_end in self.paths_critical.items():
-			if len(nodes_end) > 1:
-				# non fictional ending nodes
-				nodes_end_nf = {n for n in nodes_end if isinstance(self.matrix[node_start][n], str)}
-				node_end_nf = nodes_end_nf.pop() if nodes_end_nf else None
-				if node_end_nf:
-					self.paths_critical[node_start].remove(node_end_nf)
-					self.paths_critical[node_start].append(node_end_nf)
+		self.set_critical()
+		#self.add_nodes_critical(sbu, self.viz)
+		self.add_edges_critical(sbu, self.viz)
 		
-		self.add_critical_nodes(sb)
-		self.add_critical_edges(sb)
-		
-	def add_critical_nodes(self, sb: 'pygraphviz.AGraph') -> None:
-		""" Add critical path to viz from:
+	def add_nodes_critical(self, sbu: 'pygraphviz.AGraph', sbc: 'pygraphviz.AGraph') -> None:
+		""" Add critical nodes to viz
 		"""
-		def add_node(node: int, unique: bool=False):
-			args = {'color': 'red', 'fontcolor': 'red', 'fontname': 'arial bold', 'penwidth': 1.5} if unique else {'color': 'red', 'fontcolor': 'red'}
-			sb.add_node(node, **args)
+		for node in self.nodes_critical:
+			if node in self.path_unique:
+				sb = sbu
+				args = {'color': 'red', 'fontcolor': 'red', 'fontname': 'arial bold', 'penwidth': 1.5}
+			else:
+				sb = sbc
+				args = {'color': 'darkred', 'fontcolor': 'darkred'}
+			self.add_node_viz(sb, node, **args)
 			
-		nodes_critical = {k: v[:] for k,v in self.paths_critical.items()}
-		node_start = 0
-		add_node(node_start, True)
-		for _ in range(len(self.paths_critical)):
-			add_node(nodes_critical[node_start].pop(), True)
-			for node in nodes_critical[node_start]:
-				add_node(node)
+	def add_edges_critical(self, sbu: 'pygraphviz.AGraph', sbc: 'pygraphviz.AGraph') -> None:
+		""" Add critical edges to viz
+		"""
+		edges_unique = {(self.path_unique[i-1], self.path_unique[i]) for i in range(1, len(self.path_unique))}
+		for edge in self.edges_critical:
+			# unique
+			if edge in edges_unique:
+				sb = sbu
+				args = {'color': 'red', 'fontcolor': 'red', 'fontname': 'arial bold', 'penwidth': 1.5}
+			else:
+				sb = sbc
+				args = {'color': 'darkred', 'fontcolor': 'darkred'}
 			
-	def add_critical_edges(self) -> None:
-		""" Add critical path to viz from:
-		"""
-		# rank subgraph
-		sb = self.viz.add_subgraph(name='critical')
-		sb.node_attr.update(color='red', fontcolor='red')
-		sb.edge_attr.update(color='red', fontcolor='red')
-		"""
-		# nodes
-		for node_start, nodes_end in self.paths_critical:
-			# non fictional ending nodes
-			nodes_end_nf = {n for n in nodes_end if isinstance(self.matrix[node_start][n], str)}
-			node = nodes_end_nf.pop() if nodes_end_nf else nodes_end.pop()
-			sb.add_node(f"r{i}", width=0.5)
-		for i in range(1, len(self.ranks)):
-			sb.add_edge(f"r{i - 1}", f"r{i}", label=i)
-		sb.layout(prog='dot')
-		
-			for node_end in self.paths_critical[node_start]:
-				if isinstance(self.matrix[node_start][node_end], str):
-					args = {'color': 'red'}
-				sb.add_node(node_end, width=0.5)
-			nodes_end
-			for node_start, nodes_end in self.paths_critical:
-				node_end = nodes_end.pop()
-				sb.add_node(node_end, width=0.5)
-			for i in range(1, len(self.ranks)):
-				sb.add_edge(f"r{i - 1}", f"r{i}", label=i)
-			sb.layout(prog='dot')
-		"""
+			self.add_edge_viz(sb, edge, **args)
 
+	def add_edge_viz(self, sb: 'pygraphviz.AGraph', edge, **d) -> None:
+		""" add edge in pygraphviz.AGraph passed in argument
+		"""
+		m, n = edge
+		task = self.matrix[m][n]
+		if isinstance(task, str):
+			d.update({
+				'label': f"{task}.{self.edges_value[task]}",
+			})
+		# fictional edges
+		else:
+			task = task.pop()
+			d.update({
+				'label': f"{task}.0",
+				 'style': 'dashed',
+			})
+		sb.add_edge(m, n, **d)
+				
 	def add_edges(self) -> None:
 		""" Add edges to viz from:
 		"""
-		style_fictional = {'color': 'dodgerblue4', 'style': 'dashed'}
-		
-		# add to viz
-		for m in range(self.dim):
-			for n in range(self.dim):
-				if self.matrix[m][n]:
-					edge = self.matrix[m][n]
-					# regular edges
-					if isinstance(edge, str): 
-						self.viz.add_edge(m, n, label=f"{edge}.{self.edges_value[edge]}")
-					# fictional edges
-					else:
-						edge = edge.pop()
-						self.viz.add_edge(m, n, label=f"{edge}.0", **style_fictional)
+		# all edges reduce by critical ones
+		#TODO: delete
+		#edges = {(m, n): self.matrix[m][n] for n in range(self.dim) for m in range(self.dim) if self.matrix[m][n] and (m, n) not in self.edges_critical}
+		edges = {(m, n): self.matrix[m][n] for n in range(self.dim) for m in range(self.dim) if self.matrix[m][n] and (m, n) not in self.edges_critical}
+		for edge, task in edges.items():
+			d = {} if isinstance(task, str) else {'color': 'dodgerblue4'}
+			self.add_edge_viz(self.viz, edge, **d)
 				
-	def add_nodes(self) -> None:
-		""" Add nodes to viz from:
+	def add_node_viz(self, sb: 'pygraphviz.AGraph', node, **d) -> None:
+		""" add node in pygraphviz.AGraph passed in argument
 		"""
+		""" keep to format 
 		def rjust(*values) -> list:
 			values = [str(i) for i in values]
 			len_max = max({len(i) for i in values})
 			return [i.rjust(len_max, ' ') for i in values]
 		
+		value_down, value_back = rjust(value_down, value_back)
+		"""
+		index, value_down, value_back = self.nodes_values[node]
+		value_down, value_back = str(value_down), str(value_back)
+		sb.add_node(node, label=f"_{index}_\n{value_down} | {value_back}", **d)
+
+	def add_nodes(self) -> None:
+		""" Add nodes to viz from:
+		"""
+		def get_critical(node):
+			if node in self.path_unique:
+				args = {'color': 'red', 'fontcolor': 'red', 'fontname': 'arial bold', 'penwidth': 1.5}
+			else:
+				args = {'color': 'darkred', 'fontcolor': 'darkred'}
+			return args
+
 		for rank, nodes in self.ranks.items():
 			sb = self.viz.add_subgraph(name=f"rank{rank}", rank="same")
-			
 			sb.add_node(f"r{rank}")
 			for node in nodes:
-				index, value_down, value_back = self.nodes_values[node]
-				value_down, value_back = str(value_down), str(value_back)
-				#value_down, value_back = rjust(value_down, value_back)
-				# add to viz
-				sb.add_node(node, label=f"_{index}_\n{value_down} | {value_back}")
-
-		"""
-		old brut fashion
-		for node, data in self.nodes_values.items():
-			index, value_down, value_back = data
-			# add to viz
-			self.viz.add_node(node, label=f"_{index}_\n{value_down}|{value_back}")
-		"""
+				if node in self.nodes_critical:
+					args = get_critical(node)
+				else:
+					args = {}
+				self.add_node_viz(sb, node, **args)
 
 	def add_node_index(self, node: int, index: int) -> None:
 		pass
@@ -241,10 +237,6 @@ class GraphPert(Graph):
 			value_edge = 0
 		value_from = self.nodes_values[node_scs][2]
 		
-		# TODO: remove this
-		k_node_from = self.nodes[node_scs]
-		k_node = self.nodes[node]
-
 		# node_from is without end, keep path of unique node come from without end 		
 		if value_from > -1:
 			if self.nodes_values[node][2] < 0:
@@ -253,27 +245,16 @@ class GraphPert(Graph):
 				if value_from - value_edge < self.nodes_values[node][2]:
 					self.nodes_values[node][2] = value_from - value_edge
 
-	def add_path_critical(self, node: int, node_scs: int) -> None:
-		# paths
-		if self.nodes_values[node][1] == self.nodes_values[node][2] and node_scs in self.paths_critical:
-			if node in self.paths_critical:
-				if node_scs not in self.paths_critical[node]:
-					self.paths_critical[node].append(node_scs)
-			else:
-				self.paths_critical[node] = [node_scs]
-		
 	def add_timeline(self, **d) -> None:
 		""" Add nodes to viz from:
 		"""
 		# rank subgraph
 		sb = self.viz.add_subgraph(name='timeline')
-		sb.node_attr.update(fixedsize=True, width=0.5, fontcolor='blue')
-		sb.edge_attr.update(fontcolor='red')
 		
-		for i in self.ranks.keys():
-			sb.add_node(f"r{i}", width=0.5)
-		for i in range(1, len(self.ranks)):
-			sb.add_edge(f"r{i - 1}", f"r{i}", label=i)
+		for rank in self.ranks.keys():
+			sb.add_node(f"r{rank}", width=0.5)
+		for rank in range(1, len(self.ranks)):
+			sb.add_edge(f"r{rank - 1}", f"r{rank}", label=rank)
 		sb.layout(prog='dot')
 			
 	def matrix_add_fictionals(self, node_ref: str, nodes_fictional: set, node_old: str) -> None:
@@ -318,7 +299,7 @@ class GraphPert(Graph):
 		self.dim = len(self.matrix)
 		self.nodes = [node for node in self.nodes if node not in nodes_merged]
 		self.nodes_i = {node: i for i, node in enumerate(self.nodes)}
-			
+
 	def get_ancestors_label(self, fictional: bool=False) -> dict:
 		""" get ancestors from self matrix
 		
@@ -476,8 +457,6 @@ class GraphPert(Graph):
 		node_end = self.nodes_i[self.node_end]
 		ancestors = self.get_ancestors(fictional=True)
 		paths = [[node_end]]
-		# critical paths of edges
-		self.paths_critical = {node_end: []}
 
 		while paths:
 			paths_tmp = paths
@@ -498,7 +477,6 @@ class GraphPert(Graph):
 							raise ValueError(f"There is a backing cycle in your graph: {' '.join(str(i) for i in path)} -> {node}")
 					
 						# paths
-						self.add_path_critical(node, node_successor)
 						if node == node_start:
 							self.paths_back.append(path + [node])
 						else:
@@ -545,49 +523,12 @@ class GraphPert(Graph):
 		# close with put the final value for the back
 		self.nodes_values[node_end][2] = self.nodes_values[node_end][1]
 
-	def set_ranks(self):
-		""" set ranks for nodes
+	def set_edges(self, **d) -> None:
+		""" Add edges to viz from:
 		"""
-		def add_last(node, rank, ranks):
-			""" use local parent variables: ranks, node_visited
-			""" 
-			if node in nodes_visited:
-				ranks = {k: v.difference({node}) for k,v in ranks.items()}
-			if rank in ranks:
-				ranks[rank].add(node)
-			else:
-				ranks[rank] = {node}
-				
-			return ranks
-		
-		node_end = self.nodes_i[self.node_end]
-		successors = self.get_successors()
-		ranks = {0: {0}}
-		rank = 0
-		nodes_visited = {0}
-		paths = [[0]]
+		self.reset_edges()
+		self.add_edges()
 
-		while paths:
-			rank += 1
-
-			paths_tmp = paths
-			paths = []
-			for path in paths_tmp:
-				node_ancestor = path[-1]
-				nodes = successors[node_ancestor]
-
-				for node in nodes:
-					# rank
-					ranks = add_last(node, rank, ranks)
-					nodes_visited.add(node)
-					
-					# paths
-					if node != node_end:
-						paths.append(path + [node])
-					else:
-						self.paths_down.append(path + [node])
-		self.ranks = ranks
-				
 	def set_from_pert(self, pert: dict, **d) -> None:
 		""" Set the graph from pert, values and optionally edge names 
 		
@@ -641,13 +582,13 @@ class GraphPert(Graph):
 		nodes_merged_all = set()
 		
 		"""
-		"""
 		graph_matrices = []
 		graph_nodes = []
 		def copym(m): return [[i for i in l] for l in m]
 		def copyn(n): return [i for i in n]
 		graph_matrices.append(copym(self.matrix))
 		graph_nodes.append(copyn(self.nodes))
+		"""
 		
 		ancestors2group = {n: a for n, a in ancestors.items() if len(a) > 1}
 		for node, nodes_ancestor in ancestors2group.items():
@@ -664,25 +605,24 @@ class GraphPert(Graph):
 		self.matrix_reduce_nodes(nodes_merged_all, new_end)
 
 		"""
-		"""
 		graph_matrices.append(copym(self.matrix))
 		graph_nodes.append(copyn(self.nodes))
 		for i in range(len(graph_matrices)):
 			g = Graph(matrix=graph_matrices[i], nodes=graph_nodes[i])
 			g.draw(f"files/pert-inter5-{i}.svg", ext='svg', graph_attr={'rankdir':'LR'}, edge_attr={'fontsize':12})
-
+		"""
+		# generate
 		self.set_down()
 		self.set_back()
 		self.set_ranks()
+		#drawing
+		self.add_critical()
 		self.add_timeline()
-		#self.add_critical()
 		self.add_nodes()
 		self.add_edges()
-		
 		self.draw('files/pert_first.svg', ext='svg')
+		
 		print('gag')
-
-		self.add_critical()
 		
 	def set_matrices(self, pert):
 		# nodes
@@ -717,11 +657,81 @@ class GraphPert(Graph):
 		self.reset_nodes()
 		self.add_nodes()
 
-	def set_edges(self, **d) -> None:
-		""" Add edges to viz from:
+	def set_critical(self):
+		""" get the best critical path ;o)
 		"""
-		self.reset_edges()
-		self.add_edges()
+		def path2(node_start: int, node_end: int) -> bool:
+			return self.edges_value[self.matrix[node_start][node_end]] == self.nodes_values[node_end][1]
+			
+		self.nodes_critical = {node for node, data in self.nodes_values.items() if data[1] == data[2]}
+		paths_critical = set()
+		for path in self.paths_down:
+			add = True
+			for i in range(1, len(path)):
+				ns, ne = path[i-1], path[i]
+				if ne not in self.nodes_critical:
+					add = False
+					break
+				else:
+					ve = self.edges_value[self.matrix[ns][ne]] if isinstance(ns, str) else self.edges_value[self.matrix[ns][ne][0]]
+					if self.nodes_values[ns][1] + ve != self.nodes_values[ne][1]:
+						add = False
+						break
+			if add:
+				paths_critical.add(tuple(path))
+		
+		# paths		
+		self.paths_critical = {}
+		self.edges_critical = set()
+		for path in paths_critical:
+			self._dict_add(self.paths_critical,len(path), path)
+			self.edges_critical.update((path[i-1], path[i]) for i in range(1, len(path)))
+			
+		self.path_unique = next(iter(self.paths_critical[min(self.paths_critical.keys())]))
+		
+	def set_ranks(self):
+		""" set ranks for nodes
+		"""
+		def add_last(node, rank, ranks):
+			""" use local parent variables: ranks, node_visited
+			""" 
+			if node in nodes_visited:
+				ranks = {k: v.difference({node}) for k,v in ranks.items()}
+			if rank in ranks:
+				ranks[rank].add(node)
+			else:
+				ranks[rank] = {node}
+			return ranks
+		
+		node_end = self.nodes_i[self.node_end]
+		successors = self.get_successors()
+		ranks = {0: {0}}
+		rank = 0
+		nodes_visited = {0}
+		paths = [[0]]
+
+		while paths:
+			rank += 1
+			paths_tmp = paths
+			paths = []
+			for path in paths_tmp:
+				node_ancestor = path[-1]
+				nodes = successors[node_ancestor]
+
+				for node in nodes:
+					# rank
+					ranks = add_last(node, rank, ranks)
+					nodes_visited.add(node)
+					
+					# paths
+					if node != node_end:
+						paths.append(path + [node])
+					else:
+						self.paths_down.append(path + [node])
+		self.ranks = ranks
+				
+
+
 				
 
 
