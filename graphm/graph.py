@@ -63,7 +63,7 @@ class Graph:
 		'label' : 'G',
 		'directed' : True,
 		'rankdir' : "TB",
-		'ranksep' : "0.5",
+		'ranksep' : 0.5,
 		'strict' : False,
 		}
 	node_attr = {

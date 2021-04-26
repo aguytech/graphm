@@ -74,7 +74,7 @@ class GraphPert(Graph):
 	graph_attr = {
 		'directed' : True,
 		'rankdir' : 'LR',
-		'ranksep' : "0.5",
+		'ranksep' : 1,
 		'strict' : False,
 		'margin' : 0.02,
 		'fontsize' : 14,
@@ -665,17 +665,12 @@ class GraphPert(Graph):
 		""" get the best critical path ;o)
 		"""
 		def iscritical(node_start: int, node_end: int) -> bool:
-			path2 = path
-			v1e = self.nodes_values[node_start][1]
-			v1s = self.nodes_values[node_end][1]
-			#v2e = self.nodes_values[node_start][2]
-			#v2s = self.nodes_values[node_end][2]
 			ve = self.edges_value[self.matrix[node_start][node_end]] if isinstance(self.matrix[node_start][node_end], str) else 0
-			test = self.nodes_values[node_start][1] + ve == self.nodes_values[node_end][1]
-			return test
+			return self.nodes_values[node_start][1] + ve == self.nodes_values[node_end][1]
 				
 		self.nodes_critical = {node for node, data in self.nodes_values.items() if data[1] == data[2]}
-		self.paths_critical = set()
+		paths_critical = set()
+		
 		for path in self.paths_down:
 			add = True
 			for i in range(1, len(path)):
@@ -683,14 +678,14 @@ class GraphPert(Graph):
 					add = False
 					break
 			if add:
-				self.paths_critical.add(path)
+				paths_critical.add(path)
 		
 		# paths		
+		self.paths_critical = {}
 		self.edges_critical = set()
-		for path in self.paths_critical:
+		for path in paths_critical:
 			self._dict_add(self.paths_critical,len(path), path)
 			self.edges_critical.update((path[i-1], path[i]) for i in range(1, len(path)))
-			
 		self.path_unique = next(iter(self.paths_critical[min(self.paths_critical.keys())]))
 		
 	def set_ranks(self):
