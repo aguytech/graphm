@@ -456,6 +456,7 @@ class GraphPert(Graph):
 		node_end = self.nodes_i[self.node_end]
 		ancestors = self.get_ancestors(fictional=True)
 		paths = [[node_end]]
+		paths_back = []
 
 		while paths:
 			paths_tmp = paths
@@ -477,9 +478,11 @@ class GraphPert(Graph):
 					
 						# paths
 						if node == node_start:
-							self.paths_back.append(path + [node])
+							paths_back.append(path + [node])
 						else:
 							paths.append(path + [node])
+							
+		self.paths_back = {tuple(i) for i in paths_back}
 
 	def set_down(self):
 		""" Define value of nodes by a DFS
@@ -490,6 +493,7 @@ class GraphPert(Graph):
 		node_end = self.nodes_i[self.node_end]
 		nodes_visited = {0}
 		paths = [[0]]
+		paths_down = []
 		successors = self.get_successors(fictional=True)
 		# index, value_down, value_back
 		self.nodes_values = {i: [i, 0, -1] for i in range(self.dim)}
@@ -517,10 +521,11 @@ class GraphPert(Graph):
 					if node != node_end:
 						paths.append(path + [node])
 					else:
-						self.paths_down.append(path + [node])
+						paths_down.append(path + [node])
 						
 		# close with put the final value for the back
 		self.nodes_values[node_end][2] = self.nodes_values[node_end][1]
+		self.paths_down = {tuple(i) for i in paths_down}
 
 	def set_edges(self, **d) -> None:
 		""" Add edges to viz from:
@@ -659,28 +664,30 @@ class GraphPert(Graph):
 	def set_critical(self):
 		""" get the best critical path ;o)
 		"""
-		def path2(node_start: int, node_end: int) -> bool:
-			return self.edges_value[self.matrix[node_start][node_end]] == self.nodes_values[node_end][1]
-			
+		def iscritical(node_start: int, node_end: int) -> bool:
+			path2 = path
+			v1e = self.nodes_values[node_start][1]
+			v1s = self.nodes_values[node_end][1]
+			#v2e = self.nodes_values[node_start][2]
+			#v2s = self.nodes_values[node_end][2]
+			ve = self.edges_value[self.matrix[node_start][node_end]] if isinstance(self.matrix[node_start][node_end], str) else 0
+			test = self.nodes_values[node_start][1] + ve == self.nodes_values[node_end][1]
+			return test
+				
 		self.nodes_critical = {node for node, data in self.nodes_values.items() if data[1] == data[2]}
-		paths_critical = set()
+		self.paths_critical = set()
 		for path in self.paths_down:
 			add = True
 			for i in range(1, len(path)):
-				ns, ne = path[i-1], path[i]
-				ve = self.edges_value[self.matrix[ns][ne]] if isinstance(ns, str) else 0
-				if self.nodes_values[ns][1] + ve != self.nodes_values[ne][1]:
+				if path[i] not in self.nodes_critical or not iscritical(path[i-1], path[i]):
 					add = False
 					break
 			if add:
-				paths_critical.add(tuple(path))
-		
-		
+				self.paths_critical.add(path)
 		
 		# paths		
-		self.paths_critical = {}
 		self.edges_critical = set()
-		for path in paths_critical:
+		for path in self.paths_critical:
 			self._dict_add(self.paths_critical,len(path), path)
 			self.edges_critical.update((path[i-1], path[i]) for i in range(1, len(path)))
 			
@@ -723,8 +730,6 @@ class GraphPert(Graph):
 					# paths
 					if node != node_end:
 						paths.append(path + [node])
-					else:
-						self.paths_down.append(path + [node])
 		self.ranks = ranks
 				
 
