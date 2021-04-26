@@ -182,6 +182,7 @@ g.draw('files/pert-setdown-2-1.svg', ext='svg', graph_attr={'rankdir':'LR'})
 
 """
 	GRAPH
+"""
 file = "files/grah_bin_01"
 m = graphm.MatrixBoolean(random=(6,6))
 mb = graphm.MatrixBinary(random=(6,6))
@@ -214,4 +215,3 @@ print(g.viz.string())
 #g = Graph(mt, nodes)
 #g.matrix2viz(label="G'")
 #g.draw(f"{file}-final.png")
-"""

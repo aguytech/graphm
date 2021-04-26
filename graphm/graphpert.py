@@ -1,5 +1,9 @@
+'''
+Created on Apr 26, 2021
+
+@author: salem Aguemoun
+'''
 from graphm import Graph
-from Cython.Compiler.Naming import self_cname
 
 class GraphPert(Graph):
 	""" Manage Pert graph.

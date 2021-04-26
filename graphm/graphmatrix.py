@@ -1,6 +1,11 @@
+'''
+Created on Apr 26, 2021
+
+@author: salem Aguemoun
+'''
 import pygraphviz
 
-class GraphM:
+class GraphM(object):
 	""" Manage graph with matrix:
 	
 	Data is stored in an internal boolean matrix
@@ -373,7 +378,7 @@ class GraphM:
 		'0111'
 		"""
 		s = bin(line)[2:]
-		return s.rjust(self.dim, '0')
+		return s.zfill(self.dim)
 
 	def set_from_binary(self, binary: iter, **d) -> None:
 		""" Set boolean matrix from binary matrix and nodes if given

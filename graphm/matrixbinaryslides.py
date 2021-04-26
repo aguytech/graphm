@@ -1,13 +1,13 @@
-"""
-# for doctest
-print("__name__", __name__)
-print("__package__", __package__)
-"""
+'''
+Created on Apr 26, 2021
+
+@author: salem Aguemoun
+'''
 # for doctest
 if __name__ == "matrixbinaryslides" :
 	from graphm import MatrixBinary
 
-class MatrixBinarySlides():
+class MatrixBinarySlides(object):
 	""" Manage slides of binary matrices with closure
 	
 	This class give a lot of tools to manipulate and analyse
@@ -713,7 +713,7 @@ class MatrixBinarySlides():
 		'0000100100'
 		"""
 		s = bin(line)[2:]
-		return s.rjust(self.dim, '0')
+		return s.zfill(self.dim)
 
 	def is_connected_fully(self) -> bool:
 		""" Return true if the graph is fully connected

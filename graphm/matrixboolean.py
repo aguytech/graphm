@@ -1,3 +1,8 @@
+'''
+Created on Apr 26, 2021
+
+@author: salem Aguemoun
+'''
 import functools
 import random as rnd
 from graphm.amatrix import AMatrix

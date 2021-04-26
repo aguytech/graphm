@@ -82,7 +82,7 @@ print('start')
 loners = [i for i in range(mbs.dim) if mbs.closureM[i] == 0 and mbs.closureN[i] == 0]
 conexities = [mbs.closureM[i] & mbs.closureN[i] for i in range(mbs.dim) if i not in loners]
 conexities_not = [i for i in range(len(conexities)) if conexities[i] == 0]
-conexitiesS = [bin(line)[2:].rjust(mbs.dim, '0') for line in conexities if line != 0]
+conexitiesS = [bin(line)[2:].zfill(mbs.dim) for line in conexities if line != 0]
 lines = set(conexitiesS)
 nodes = [[i for i in range(mbs.dim) if line[i] == '1'] for line in lines]
 for line in conexitiesS: print(line)

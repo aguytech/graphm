@@ -1,4 +1,8 @@
-#from graphm.amatrix import AMatrix
+'''
+Created on Apr 26, 2021
+
+@author: salem Aguemoun
+'''
 import random as rnd
 from graphm.amatrix import AMatrix
 
@@ -552,7 +556,7 @@ class MatrixBinary(AMatrix):
 		'0000100100'
 		"""
 		s = bin(line)[2:]
-		return s.rjust(dim, '0')
+		return s.zfill(dim)
 
 	def matrixM2N(self) -> None:
 		""" set the transpose of the matrixM (list of rows) of itself

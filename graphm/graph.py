@@ -1,6 +1,11 @@
+'''
+Created on Apr 26, 2021
+
+@author: salem Aguemoun
+'''
 import pygraphviz
 
-class Graph:
+class Graph(object):
 	""" Manage graph with matrix.
 	
 	Data is directly stored in :class:`pygraphviz.Agraph`
@@ -447,7 +452,7 @@ class Graph:
 		'0111'
 		"""
 		s = bin(line)[2:]
-		return s.rjust(dim, '0')
+		return s.zfill(dim)
 
 	def reset_edges(self, **d) -> None:
 		""" remove all edges in viz

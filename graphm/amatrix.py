@@ -1,4 +1,9 @@
-class AMatrix():
+'''
+Created on Apr 26, 2021
+
+@author: salem Aguemoun
+'''
+class AMatrix(object):
 	"""Abstract class for matrix (fake abstract)
 	
 	Defines methods:
