@@ -148,7 +148,7 @@ class Graph:
 			self._call_init('set_from_nodes_edges', **d)
 
 	def __repr__(self) -> str:
-		""" Return the dimension and the length of nodes if exists
+		""" Return the number of nodes and of edges
 		
 		:return: the dimension and the length of nodes
 
@@ -163,9 +163,9 @@ class Graph:
 		return f"nodes={self.viz.number_of_nodes()} edges={self.viz.number_of_edges()}"
 	
 	def __str__(self) -> str:
-		""" Return the dimension, nodes and matrix if exists
+		""" Return the representation of nodes, edges and list of nodes and edges
 		
-		:return: the dimension, matrix and the length of nodes
+		:return: the numbers of nodes & edges in a first line and list of nodes & edges in a second line
 		
 		>>> g = Graph()
 		>>> print(g)
@@ -309,15 +309,10 @@ class Graph:
 		
 		.
 		"""
-		# TODO: remove
-		print(self.viz)
-		
 		# viz
 		self.update_attrs(**d)
 		
 		# draw
-		# TODO:
-		#self.viz.layout(prog=self.layout['prog'])
 		self.viz.layout(**self.layout)
 		self.viz.draw(path, ext)
 
@@ -501,23 +496,17 @@ class Graph:
 						
 				default: :class:`Graph.node_style`
 		
-		>>> g = Graph(matrix=['00010', '01100', '10000', '10100', '00000'])
-		>>> print(g)
-		nodes=5 edges=6
-		nodes A B C D E
-		edges A-D B-B B-C C-A D-A D-C
-		
-		>>> g = Graph(matrix=[['0','0','0','1'], ['0','0','1','0'], ['1','0','0','0'], ['1','0','1','0']])
-		>>> print(g)
-		nodes=4 edges=5
-		nodes A B C D
-		edges A-D B-C C-A D-A D-C
-		
-		>>> g = Graph(matrix=[[0,0,0,1], [0,0,1,0], [0,0,0,1], [1,0,1,1]])
+		>>> g = Graph(matrix=((None,None,None,2), (None,None,5,None), (None,None,None,10), (7,None,2,3)))
 		>>> print(g)
 		nodes=4 edges=6
 		nodes A B C D
 		edges A-D B-C C-D D-A D-C D-D
+		
+		>>> g = Graph(matrix=[[None,None,None,2], [None,None,5,None], [None,None,None,10], [7,None,2,3]], node_style='int')
+		>>> print(g)
+		nodes=4 edges=6
+		nodes 0 1 2 3
+		edges 0-3 1-2 2-3 3-0 3-2 3-3
 		"""
 		if not matrix:
 			raise ValueError("Wrong empty matrix")
