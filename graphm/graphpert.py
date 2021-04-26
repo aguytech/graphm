@@ -110,12 +110,12 @@ class GraphPert(Graph):
 	def add_critical(self) -> None:
 		""" Add critical path to viz from:
 		"""
-		sbu = self.viz.add_subgraph(name='cluster_0', label='', color='white')
+		sbu = self.viz.add_subgraph(name='critical', label='', color='white')
 		#sbc = self.viz.add_subgraph(name='critical')
 		
 		self.set_critical()
-		#self.add_nodes_critical(sbu, self.viz)
-		self.add_edges_critical(sbu, self.viz)
+		self.add_nodes_critical(sbu, sbu)
+		self.add_edges_critical(sbu, sbu)
 		
 	def add_nodes_critical(self, sbu: 'pygraphviz.AGraph', sbc: 'pygraphviz.AGraph') -> None:
 		""" Add critical nodes to viz
@@ -170,7 +170,7 @@ class GraphPert(Graph):
 		#edges = {(m, n): self.matrix[m][n] for n in range(self.dim) for m in range(self.dim) if self.matrix[m][n] and (m, n) not in self.edges_critical}
 		edges = {(m, n): self.matrix[m][n] for n in range(self.dim) for m in range(self.dim) if self.matrix[m][n] and (m, n) not in self.edges_critical}
 		for edge, task in edges.items():
-			d = {} if isinstance(task, str) else {'color': 'dodgerblue4'}
+			d = {} if isinstance(task, str) else {'color': 'dodgerblue4', 'fontcolor': 'dodgerblue4'}
 			self.add_edge_viz(self.viz, edge, **d)
 				
 	def add_node_viz(self, sb: 'pygraphviz.AGraph', node, **d) -> None:
@@ -203,10 +203,9 @@ class GraphPert(Graph):
 			sb.add_node(f"r{rank}")
 			for node in nodes:
 				if node in self.nodes_critical:
-					args = get_critical(node)
+					sb.add_node(node)
 				else:
-					args = {}
-				self.add_node_viz(sb, node, **args)
+					self.add_node_viz(sb, node)
 
 	def add_node_index(self, node: int, index: int) -> None:
 		pass
@@ -617,9 +616,9 @@ class GraphPert(Graph):
 		self.set_ranks()
 		#drawing
 		self.add_critical()
-		self.add_timeline()
 		self.add_nodes()
 		self.add_edges()
+		self.add_timeline()
 		self.draw('files/pert_first.svg', ext='svg')
 		
 		print('gag')
@@ -669,16 +668,14 @@ class GraphPert(Graph):
 			add = True
 			for i in range(1, len(path)):
 				ns, ne = path[i-1], path[i]
-				if ne not in self.nodes_critical:
+				ve = self.edges_value[self.matrix[ns][ne]] if isinstance(ns, str) else 0
+				if self.nodes_values[ns][1] + ve != self.nodes_values[ne][1]:
 					add = False
 					break
-				else:
-					ve = self.edges_value[self.matrix[ns][ne]] if isinstance(ns, str) else self.edges_value[self.matrix[ns][ne][0]]
-					if self.nodes_values[ns][1] + ve != self.nodes_values[ne][1]:
-						add = False
-						break
 			if add:
 				paths_critical.add(tuple(path))
+		
+		
 		
 		# paths		
 		self.paths_critical = {}
