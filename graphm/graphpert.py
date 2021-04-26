@@ -1,4 +1,5 @@
 from graphm import Graph
+from Cython.Compiler.Naming import self_cname
 
 class GraphPert(Graph):
 	""" Manage Pert graph.
@@ -54,6 +55,9 @@ class GraphPert(Graph):
 	.. NOTE:: For inherited class variables see :class:`graphm.graph.Graph`
 		
 	.. CAUTION:: Instance variables
+	
+	:var list matrix: matrix of graph.
+	Generated from initialization to simplify the build of Pert's graph
 	
 	:var pygraphviz.AGraph viz: manage drawing in dot format with :class:`pygraphviz.AGraph`
 
@@ -114,6 +118,7 @@ class GraphPert(Graph):
 		#sbc = self.viz.add_subgraph(name='critical')
 		
 		self.set_critical()
+		self.set_nodes_index()
 		self.add_nodes_critical(sbu, sbu)
 		self.add_edges_critical(sbu, sbu)
 		
@@ -126,24 +131,9 @@ class GraphPert(Graph):
 				args = {'color': 'red', 'fontcolor': 'red', 'fontname': 'arial bold', 'penwidth': 1.5}
 			else:
 				sb = sbc
-				args = {'color': 'darkred', 'fontcolor': 'darkred'}
+				args = {'color': 'firebrick', 'fontcolor': 'firebrick', 'penwidth': 1.5}
 			self.add_node_viz(sb, node, **args)
 			
-	def add_edges_critical(self, sbu: 'pygraphviz.AGraph', sbc: 'pygraphviz.AGraph') -> None:
-		""" Add critical edges to viz
-		"""
-		edges_unique = {(self.path_unique[i-1], self.path_unique[i]) for i in range(1, len(self.path_unique))}
-		for edge in self.edges_critical:
-			# unique
-			if edge in edges_unique:
-				sb = sbu
-				args = {'color': 'red', 'fontcolor': 'red', 'fontname': 'arial bold', 'penwidth': 1.5}
-			else:
-				sb = sbc
-				args = {'color': 'darkred', 'fontcolor': 'darkred'}
-			
-			self.add_edge_viz(sb, edge, **args)
-
 	def add_edge_viz(self, sb: 'pygraphviz.AGraph', edge, **d) -> None:
 		""" add edge in pygraphviz.AGraph passed in argument
 		"""
@@ -173,6 +163,21 @@ class GraphPert(Graph):
 			d = {} if isinstance(task, str) else {'color': 'dodgerblue4', 'fontcolor': 'dodgerblue4'}
 			self.add_edge_viz(self.viz, edge, **d)
 				
+	def add_edges_critical(self, sbu: 'pygraphviz.AGraph', sbc: 'pygraphviz.AGraph') -> None:
+		""" Add critical edges to viz
+		"""
+		edges_unique = {(self.path_unique[i-1], self.path_unique[i]) for i in range(1, len(self.path_unique))}
+		for edge in self.edges_critical:
+			# unique
+			if edge in edges_unique:
+				sb = sbu
+				args = {'color': 'red', 'fontcolor': 'red', 'fontname': 'arial bold', 'penwidth': 1.5}
+			else:
+				sb = sbc
+				args = {'color': 'firebrick', 'fontcolor': 'firebrick', 'penwidth': 1.5}
+			
+			self.add_edge_viz(sb, edge, **args)
+
 	def add_node_viz(self, sb: 'pygraphviz.AGraph', node, **d) -> None:
 		""" add node in pygraphviz.AGraph passed in argument
 		"""
@@ -191,13 +196,6 @@ class GraphPert(Graph):
 	def add_nodes(self) -> None:
 		""" Add nodes to viz from:
 		"""
-		def get_critical(node):
-			if node in self.path_unique:
-				args = {'color': 'red', 'fontcolor': 'red', 'fontname': 'arial bold', 'penwidth': 1.5}
-			else:
-				args = {'color': 'darkred', 'fontcolor': 'darkred'}
-			return args
-
 		for rank, nodes in self.ranks.items():
 			sb = self.viz.add_subgraph(name=f"rank{rank}", rank="same")
 			sb.add_node(f"r{rank}")
@@ -207,9 +205,6 @@ class GraphPert(Graph):
 				else:
 					self.add_node_viz(sb, node)
 
-	def add_node_index(self, node: int, index: int) -> None:
-		pass
-		
 	def add_node_value_down(self, node_from: str, node: int) -> None:
 		"""
 		.. IMPORTANT:: node here is node index
@@ -349,8 +344,9 @@ class GraphPert(Graph):
 			 Nodes in argument are ancestors of treated node
 		"""
 		
-		def ref_max_scs(nodes: iter):
-			""" return the name of node which have the maximum of successors
+		def get_ref_max_scs(nodes: iter):
+			""" Returns the name of node which have the maximum of successors
+			
 			stabilizes the final structure of the graph by optimizing the critical path according to the fictitious paths 
 			"""
 			# get nodes names of successors of all nodes 
@@ -359,6 +355,16 @@ class GraphPert(Graph):
 			refs_scs = {len(successors[node]): node for node in nodes}
 			# get the name of node of the maximum of successors
 			return refs_scs[max(refs_scs.keys())]
+			
+		def get_ref_max_value(nodes: iter):
+			""" Returns the name of the node with the highest task value
+			
+			Optimize the graph by avoiding the passage of critical paths by a fictitious path
+			Stabilize the graph by taking the same path
+			"""
+			# get nodes names of successors of all nodes 
+			values = {self.edges_value[i]: i for i in nodes}
+			return values[max(values.keys())]
 			
 		ref = None
 		merged = set()
@@ -390,20 +396,20 @@ class GraphPert(Graph):
 		# merge one node at least for each groups of ancestors in conflict
 		if len(ancestors_conflict_nodes_unique_exist) > 1 and len(ancestors_conflict_nodes_unique_exist) == len(ancestors_conflict_nodes):
 			# get one node in ancestors_conflict_nodes_unique
-			ref = ref_max_scs(node for nodes in ancestors_conflict_nodes_unique.values() for node in nodes)
+			ref = get_ref_max_scs(node for nodes in ancestors_conflict_nodes_unique.values() for node in nodes)
 		# merge at least one node with another one in another group of ancestors in conflict
 		elif len(ancestors_conflict_nodes_unique_exist) > 1:
-			ref = ref_max_scs(node for nodes in ancestors_conflict_nodes_unique.values() for node in nodes)
+			ref = get_ref_max_scs(node for nodes in ancestors_conflict_nodes_unique.values() for node in nodes)
 		# at lest ancestors group exists and at least an independent node 
 		elif ancestors_conflict_nodes_unique_exist and nodes_indy:
 			# get one node in ancestors_conflict_nodes
-			ref = ref_max_scs(node for nodes in ancestors_conflict_nodes_unique.values() for node in nodes)
+			ref = get_ref_max_scs(node for nodes in ancestors_conflict_nodes_unique.values() for node in nodes)
 		elif nodes_indy:
 			# get node from independent nodes
-			ref = next(iter(nodes_indy))
+			ref = get_ref_max_value(nodes_indy)
 		else:
-			# get one node in ancestors_conflict_nodes, no merging at all, just take a reference for fictional nodes
-			ref = {node for nodes in ancestors_conflict_nodes.values() for node in nodes}.pop()
+			# get one node in ancestors_conflict_nodes, the one have the biggest task value
+			ref = get_ref_max_value({node for nodes in ancestors_conflict_nodes.values() for node in nodes})
 		
 		# TODO: Merge one non-unique node in a group with an unique node for this group from another group
 		if ancestors_conflict_nodes:
@@ -624,6 +630,7 @@ class GraphPert(Graph):
 		self.add_nodes()
 		self.add_edges()
 		self.add_timeline()
+		print(self.viz)
 		self.draw('files/pert_first.svg', ext='svg')
 		
 		print('gag')
@@ -661,6 +668,29 @@ class GraphPert(Graph):
 		self.reset_nodes()
 		self.add_nodes()
 
+	def set_nodes_index(self, style: str='from_ancestor') -> None:
+		""" Sets index for all nodes
+		"""
+		if style == 'follow':
+			index = 0
+			for nodes in self.ranks.values():
+				for node in nodes:
+					self.nodes_values[node][0] = index
+					index += 1
+					
+		elif style == 'from_ancestor':
+			successors = self.get_successors()
+			indexed = {0}
+			index = 1
+			for rank, nodes_rank in self.ranks.items():
+				if rank != 0:
+					for ancestor in self.ranks[rank - 1]:
+						for node in successors[ancestor]:
+							if node in nodes_rank and node not in indexed:
+								self.nodes_values[node][0] = index
+								indexed.add(node)
+								index += 1
+		
 	def set_critical(self):
 		""" get the best critical path ;o)
 		"""
