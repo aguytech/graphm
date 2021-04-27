@@ -15,7 +15,8 @@ class Factor(object):
 		'''
 		coefficients = Factor.get_coefficients(number)
 		elementaries = Factor.get_elementaries(coefficients)
-		facto = Factor.factor(elementaries)
+		facto, count = Factor.factor(elementaries)
+		print('gag')
 		
 	@staticmethod
 	def _dict_add(d: dict, index: int, item: iter) -> None:
@@ -47,29 +48,71 @@ class Factor(object):
 		return [Factor.get_power(c) for c in coefficients]
 		
 	@staticmethod
+	def get_calculate(factors: iter, foo: callable):
+		if not callable(foo):
+			raise ValueError("You need to give a callable function")
+		
+		
+	@staticmethod
 	def factor(elementaries: iter):
-		def factorec(elements: iter, elementaries, fact: list, deep: int):
-			if elements:
-				deep += 1
-				element = elements.pop()
-				indexes = [i for i in range(len(elementaries)) if element in elementaries[i]]
-				set_e = {element}
-				fact[element] = [elementaries[i].difference(set_e) for i in indexes]
-				[elementaries.pop() for i in indexes]
-				
-				factorec(elements[:], elementaries, fact[element], deep)
-				reduced = [i.difference(element) for i in elementaries]
-				fact = {element: [i for i in reduced if i]}
-				factorec(elements, fact[element], deep)
+		def factorec(indexes: iter, fact: list, count: int):
+			if not indexes or not fact:
+				return (fact, count)
 			
-		elements = list(set.union(*elementaries))
-		elements.sort()
-		tmp = [i.copy() for i in elementaries]
-		deep = 0
-		fact = {}
-		factorec(elements, tmp, fact, deep)
-		return (fact, deep)
+			index = indexes.pop()
+			index_s = {index}
 			
+			count += 1
+			for item in range(len(indexes)):
+				pass
+			
+			content_index = [fact[i] for i in range(len(fact)) if index in fact[i]]
+			content_not_index = [fact[i] for i in range(len(fact)) if index not in fact[i]]
+			content_index = [v.difference(index_s) if v.difference(index_s) else {0} for v in content_index]
+			fact.clear()
+			
+			count_keep = count
+			if len(content_index) > 1:
+				content_index, count_i = factorec(indexes[:], content_index, count)
+				count = count_i
+			if len(content_not_index) > 1:
+				content_not_index, count_ni = factorec(indexes[:], content_not_index, count)
+				count = count + (count_ni - count_keep)
+			
+			if content_index:
+				fact.append({index: content_index})
+			if content_not_index:
+				fact.append(content_not_index)
+			
+			return (fact, count)
+			
+		indexes = list(set.union(*elementaries))
+		indexes.sort(reverse=True)
+		count = 0
+		fact = [i.copy() for i in elementaries]
+		return factorec(indexes, fact, count)
+			
+"""			
+			deep += 1
+			index = indexes.pop()
+			index_s = {index}
+			content = [fact[i] for i in range(len(fact)) if index in fact[i] and not isinstance(fact[i], dict)]
+			[fact.remove(v) for v in content if not isinstance(content, dict)]
+			content = [v.difference(index_s) if v.difference(index_s) else {0} for v in content]
+			
+			fact_d = factorec(indexes, fact, deep)
+			fact.append({index: content})
+			
+			factorec(indexes, fact, deep)
+
+
+
+
+			found = [fact[i] for i in range(len(fact)) if index in fact[i]]
+			not_found = [fact[i] for i in range(len(fact)) if index not in fact[i]]
+			found = [i if i else {0} for i in found]
+			fact.append({index: found})
+"""		
 		
 		
 		
