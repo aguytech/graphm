@@ -114,14 +114,14 @@ class MatrixBoolean(AMatrix):
 		return  f"dim {self.dimM},{self.dimN}" +"\n" \
 			+ "\n".join("".join(str(n) for n in m) for m in self.matrix)
 	
-	def get_copy(self) -> 'MatrixBoolean':
+	def copy(self) -> 'MatrixBoolean':
 		""" Return a copy of matrix
 		
 		:return: copy of matrix
 		:rtype: MatrixBoolean
 		
 		>>> m = MatrixBoolean(matrix=['001', '000', '111', '101', '100'])
-		>>> m.get_copy()
+		>>> m.copy()
 		001,000,111,101,100
 		"""
 		return MatrixBoolean(matrix=self.matrix)

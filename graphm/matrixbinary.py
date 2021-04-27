@@ -134,6 +134,18 @@ class MatrixBinary(AMatrix):
 		return f"dim {self.dimM},{self.dimN}" +"\n" \
 			+ "\n".join(MatrixBinary.get_int2str(m, self.dimN) for m in self.matrixM)
 
+	def copy(self) -> 'MatrixBinary':
+		""" Return a copy of matrix
+		
+		:return: copy of matrix
+		:rtype: MatrixBinary
+		
+		>>> m = MatrixBinary(boolean=['001', '000', '111', '101', '100'])
+		>>> m.copy()
+		001,000,111,101,100
+		"""
+		return MatrixBinary(matrix=([i for i in self.matrixM],self.dimN))
+		
 	def export2list(self) -> list:
 		""" Return the matrix content in a list
 		
@@ -527,18 +539,6 @@ class MatrixBinary(AMatrix):
 		matrix = MatrixBinary(matrix=(matrixM, self.dimN))
 		return {'connect': connect, 'deep': deep, 'matrix': matrix}
 
-	def get_copy(self) -> 'MatrixBinary':
-		""" Return a copy of matrix
-		
-		:return: copy of matrix
-		:rtype: MatrixBinary
-		
-		>>> m = MatrixBinary(boolean=['001', '000', '111', '101', '100'])
-		>>> m.get_copy()
-		001,000,111,101,100
-		"""
-		return MatrixBinary(matrix=([i for i in self.matrixM],self.dimN))
-		
 	@staticmethod
 	def get_int2str(line: int, dim: int) -> str:
 		""" Return the converted  boolean string from binary integer,

@@ -4,7 +4,6 @@
 from graphm import MatrixBinary
 
 """
-"""
 m1 = MatrixBinary(matrix=([1, 1, 0, 4, 10, 8], 6))
 print(m1.str())
 m1 = MatrixBinary(boolean=['010101','101010','101011','111000'])
@@ -30,9 +29,13 @@ print('me == me2', me == me2)
 print('me is me2', me is me2)
 
 n = 10
+"""
 
 m = MatrixBinary(random=(n, n))
 print('m', m)
+
+m1 = MatrixBinary(matrix=([1, 1, 0, 4, 10, 8], 6))
+print(m1.str())
 
 """
 """
@@ -40,13 +43,13 @@ print('m', m)
 mi = m + MatrixBinary(unity=n) 
 print('mi', mi)
 
-mt = mi.get_copy()
+mt = mi.copy()
 dim,_ = m.get_dim()
 for i in range(2, dim):
 	mt = mt * mi
 	print(f"m{i} ", mt)
-mt = m.get_copy()
-d = {1:m.get_copy()}
+mt = m.copy()
+d = {1:m.copy()}
 dim,_ = m.get_dim()
 for i in range(2, dim):
 	mt = mt * m
@@ -55,8 +58,8 @@ print('d', d)
 
 """
 mi = m + MatrixBinary(unity=n)
-mt = mi.get_copy()
-mtmp = mi.get_copy()
+mt = mi.copy()
+mtmp = mi.copy()
 ic = 2
 for i in range(2, n):
 	mt = mt * mi
@@ -64,7 +67,7 @@ for i in range(2, n):
 		l = i20
 	else:
 		break
-	mtmp = mt.get_copy()
+	mtmp = mt.copy()
 #print('mt', mt)
 """
 

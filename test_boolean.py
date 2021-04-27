@@ -2,8 +2,8 @@
 	MATRIXBOOLEAN
 """
 from graphm import MatrixBoolean
-
 """
+
 """
 m1 = MatrixBoolean(matrix=['010101','101010','101011','111000'])
 print(m1)
@@ -38,13 +38,13 @@ print('m', m)
 mi = m + MatrixBoolean(unity=n) 
 print('mi', mi)
 
-mt = mi.get_copy()
+mt = mi.copy()
 dim,_ = m.get_dim()
 for i in range(2, dim):
 	mt = mt * mi
 	print(f"m{i} ", mt)
-mt = m.get_copy()
-d = {1:m.get_copy()}
+mt = m.copy()
+d = {1:m.copy()}
 dim,_ = m.get_dim()
 for i in range(2, dim):
 	mt = mt * m
