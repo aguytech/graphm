@@ -15,24 +15,32 @@ class Factor(object):
 		Constructor
 		'''
 		self.number= number
-		self.result= None
-		coefficients = Factor.get_coefficients(number)
-		elementaries = Factor.get_elementaries(coefficients)
-		self.fact, self.count = Factor.factor(elementaries)
+		self.coefficients = Factor.get_coefficients(number)
+		self.elementaries = Factor.get_elementaries(self.coefficients)
+		self.fact, self.count = Factor.factor(self.elementaries)
 	
 	def __repr__(self):
-		return f"number: {self.number}\nfacto: {self.facto}\ncount: {self.count}\nresult: {self.result}"
+		return f"number: {self.number}\nfacto: {self.facto}\ncount: {self.count}"
 	
 	def __str__(self):
 		def str_rec(fact):
+			if isinstance(fact[0], set):
+				return fact[0].pop()
+			p = ''
 			for d in fact:
 				index, content = d.popitem()
 				content = str_rec(content)
-				p = f"{index}*( {content} ) + "
+				if index == 0 and str(content) == '0':
+					p += f"{index} + "
+				elif str(content) == '0':
+					p += f"{index} + "
+				else:
+					p += f"{index}*({content}) + "
+					
+			return p.rstrip(' +')
 		
-		l = [{8: [{1: [{0: [{0}]}]}, {0: [{0}]}]}, {4: [{2: [{1: [{0: [{0}]}]}, {0: [{0}]}]}, {1: [{0: [{0}]}]}, {0: [{0}]}]}, {2: [{1: [{0: [{0}]}]}, {0: [{0}]}]}, {1: [{0: [{0}]}]}, {0: [{0}]}]
 		fact = deepcopy(self.fact)
-		p = str_rec(self.fact)
+		p = str_rec(fact)
 		return p
 	
 	@staticmethod
@@ -55,6 +63,11 @@ class Factor(object):
 		return list(bin(number)[2:])
 
 	@staticmethod
+	def get_bases(number: int) -> list:
+		length = len(Factor.get_int2list(number))
+		return [2**i for i in range(1, length)]
+
+	@staticmethod
 	def get_power(number: int) -> set:
 		n = list(bin(number)[2:])
 		n.reverse()
@@ -65,14 +78,42 @@ class Factor(object):
 	def get_elementaries(coefficients: iter):
 		return [Factor.get_power(c) for c in coefficients]
 		
-	@staticmethod
-	def get_calculate(factors: iter, obj: object):
+	def calculate(self, obj: object):
 		if not hasattr(obj, '__add__'):
 			raise ValueError("The given object has no method for addition")
 		if not hasattr(obj, '__mul__'):
 			raise ValueError("The given object has no method for multiplication")
 		
+		def bases(obj: object, max_e: int):
+			elements = {0: obj}
+			indexes = {i: 2**i for i in range(1, max_e.bit_length() + 1)}
+			indexes[0] = 0
+			for index in indexes:
+				elements[indexes[index]] = elements[indexes[index - 1]] * elements[indexes[index - 1]]
+			return elements
 		
+		def str_rec(fact):
+			if isinstance(fact[0], set):
+				return fact[0].pop()
+			p = ''
+			for d in fact:
+				index, content = d.popitem()
+				content = str_rec(content)
+				if index == 0 and str(content) == '0':
+					p += f"{index} + "
+				elif str(content) == '0':
+					p += f"{index} + "
+				else:
+					p += f"{index}*({content}) + "
+					
+			return p.rstrip(' +')
+		
+		max_e = max({i for l in self.elementaries for i in l})
+		bases = bases(obj, max_e)
+		fact = deepcopy(self.fact)
+		p = str_rec(fact)
+		return p
+
 	@staticmethod
 	def factor(elementaries: iter):
 		def factorec(indexes: iter, fact: list, count: int):
@@ -90,7 +131,6 @@ class Factor(object):
 					content, count = factorec(indexes[ii+1:], content, count)
 				if content:
 					fact.append({index: content})
-				
 			return (fact, count)
 		
 		indexes = list(set.union(*elementaries, {0}))
@@ -99,30 +139,7 @@ class Factor(object):
 		fact = [i.copy() for i in elementaries]
 		fact
 		return factorec(indexes, fact, count)
-			
-"""			
-			deep += 1
-			index = indexes.pop()
-			index_s = {index}
-			content = [fact[i] for i in range(len(fact)) if index in fact[i] and not isinstance(fact[i], dict)]
-			[fact.remove(v) for v in content if not isinstance(content, dict)]
-			content = [v.difference(index_s) if v.difference(index_s) else {0} for v in content]
-			
-			fact_d = factorec(indexes, fact, deep)
-			fact.append({index: content})
-			
-			factorec(indexes, fact, deep)
-
-
-
-
-			found = [fact[i] for i in range(len(fact)) if index in fact[i]]
-			not_found = [fact[i] for i in range(len(fact)) if index not in fact[i]]
-			found = [i if i else {0} for i in found]
-			fact.append({index: found})
-"""		
-		
-		
+				
 		
 		
 		
