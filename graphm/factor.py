@@ -3,6 +3,7 @@ Created on Apr 26, 2021
 
 @author: nikita
 '''
+from copy import deepcopy
 
 class Factor(object):
 	'''
@@ -13,11 +14,27 @@ class Factor(object):
 		'''
 		Constructor
 		'''
+		self.number= number
+		self.result= None
 		coefficients = Factor.get_coefficients(number)
 		elementaries = Factor.get_elementaries(coefficients)
-		facto, count = Factor.factor(elementaries)
-		print('gag')
+		self.fact, self.count = Factor.factor(elementaries)
+	
+	def __repr__(self):
+		return f"number: {self.number}\nfacto: {self.facto}\ncount: {self.count}\nresult: {self.result}"
+	
+	def __str__(self):
+		def str_rec(fact):
+			for d in fact:
+				index, content = d.popitem()
+				content = str_rec(content)
+				p = f"{index}*( {content} ) + "
 		
+		l = [{8: [{1: [{0: [{0}]}]}, {0: [{0}]}]}, {4: [{2: [{1: [{0: [{0}]}]}, {0: [{0}]}]}, {1: [{0: [{0}]}]}, {0: [{0}]}]}, {2: [{1: [{0: [{0}]}]}, {0: [{0}]}]}, {1: [{0: [{0}]}]}, {0: [{0}]}]
+		fact = deepcopy(self.fact)
+		p = str_rec(self.fact)
+		return p
+	
 	@staticmethod
 	def _dict_add(d: dict, index: int, item: iter) -> None:
 		""" add in place item in sets contained in passed dictionary
@@ -39,18 +56,21 @@ class Factor(object):
 
 	@staticmethod
 	def get_power(number: int) -> set:
-		p = list(bin(number)[2:])
-		p.reverse()
-		return {2**i for i,n in enumerate(p) if n =='1'}
+		n = list(bin(number)[2:])
+		n.reverse()
+		p = {2**i for i,n in enumerate(n) if n =='1'}
+		return p if p else {0}
 
 	@staticmethod
 	def get_elementaries(coefficients: iter):
 		return [Factor.get_power(c) for c in coefficients]
 		
 	@staticmethod
-	def get_calculate(factors: iter, foo: callable):
-		if not callable(foo):
-			raise ValueError("You need to give a callable function")
+	def get_calculate(factors: iter, obj: object):
+		if not hasattr(obj, '__add__'):
+			raise ValueError("The given object has no method for addition")
+		if not hasattr(obj, '__mul__'):
+			raise ValueError("The given object has no method for multiplication")
 		
 		
 	@staticmethod
@@ -59,37 +79,25 @@ class Factor(object):
 			if not indexes or not fact:
 				return (fact, count)
 			
-			index = indexes.pop()
-			index_s = {index}
-			
-			count += 1
-			for item in range(len(indexes)):
-				pass
-			
-			content_index = [fact[i] for i in range(len(fact)) if index in fact[i]]
-			content_not_index = [fact[i] for i in range(len(fact)) if index not in fact[i]]
-			content_index = [v.difference(index_s) if v.difference(index_s) else {0} for v in content_index]
-			fact.clear()
-			
-			count_keep = count
-			if len(content_index) > 1:
-				content_index, count_i = factorec(indexes[:], content_index, count)
-				count = count_i
-			if len(content_not_index) > 1:
-				content_not_index, count_ni = factorec(indexes[:], content_not_index, count)
-				count = count + (count_ni - count_keep)
-			
-			if content_index:
-				fact.append({index: content_index})
-			if content_not_index:
-				fact.append(content_not_index)
-			
+			for ii in range(len(indexes)):
+				count += 1
+				index = indexes[ii]
+				index_s = {index}
+				content = [fact[i] for i in range(len(fact)) if index in fact[i]]
+				[fact.remove(i) for i in content]
+				content = [v.difference(index_s) if v.difference(index_s) else {0} for v in content]
+				if len(content):
+					content, count = factorec(indexes[ii+1:], content, count)
+				if content:
+					fact.append({index: content})
+				
 			return (fact, count)
-			
-		indexes = list(set.union(*elementaries))
+		
+		indexes = list(set.union(*elementaries, {0}))
 		indexes.sort(reverse=True)
 		count = 0
 		fact = [i.copy() for i in elementaries]
+		fact
 		return factorec(indexes, fact, count)
 			
 """			
