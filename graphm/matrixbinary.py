@@ -200,8 +200,8 @@ class MatrixBinary(AMatrix):
 		matrixN = [self.matrixN[i] | unity[i] for i in range(self.dimN)]
 		matrixM_tmp = matrixM[:]
 		
-		# loops on n-2
-		for i in range(2, self.dimM):
+		# loops on n-1
+		for i in range(1, self.dimM):
 			# mul
 			for m in range(self.dimM):
 				matrixM[m] = int('0b' + ''.join([('0' if (matrixM[m] & matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
@@ -236,8 +236,8 @@ class MatrixBinary(AMatrix):
 		matrixM = [self.matrixM[i] | unity[i] for i in range(self.dimM)]
 		matrixN = [self.matrixN[i] | unity[i] for i in range(self.dimN)]
 		
-		# loops on n-2
-		for i in range(2, self.dimM):
+		# loops on n-1
+		for i in range(1, self.dimM):
 			# mul
 			for m in range(self.dimM):
 				matrixM[m] = int('0b' + ''.join([('0' if (matrixM[m] & matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
@@ -270,8 +270,8 @@ class MatrixBinary(AMatrix):
 		l = [m]
 		matrixM = list(m.matrixM)
 
-		# loops on n-2
-		for i in range(2, self.dimM):
+		# loops on n-1
+		for i in range(1, self.dimM):
 			# mul
 			for m in range(self.dimM):
 				matrixM[m] = int('0b' + ''.join([('0' if (l[i-2].matrixM[m] & self.matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
@@ -305,8 +305,8 @@ class MatrixBinary(AMatrix):
 		d = {1: MatrixBinary(matrix=(self.matrixM, self.dimN))}
 		matrixM = list(d[1].matrixM)
 
-		# loops on n-2
-		for i in range(2, self.dimM):
+		# loops on n-1
+		for i in range(1, self.dimM):
 			# mul
 			for m in range(self.dimM):
 				matrixM[m] = int('0b' + ''.join([('0' if (d[i-1].matrixM[m] & self.matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
@@ -342,8 +342,8 @@ class MatrixBinary(AMatrix):
 		closure_tmp = matrixM[:]
 		l=[[], matrixM[:]]
 
-		# loops on n-2
-		for i in range(2, self.dimM):
+		# loops on n-1
+		for i in range(1, self.dimM):
 			# mul
 			for m in range(self.dimM):
 				line = [('0' if (l[i-1][m] & self.matrixN[n]) == 0 else '1') for n in range(self.dimN)]
@@ -385,8 +385,8 @@ class MatrixBinary(AMatrix):
 		d = {1: self.matrixM[:]}
 		matrixM = list(self.matrixM)
 
-		# loops on n-2
-		for i in range(2, self.dimM):
+		# loops on n-1
+		for i in range(1, self.dimM):
 			# mul
 			for m in range(self.dimM):
 				matrixM[m] = int('0b' + ''.join([('0' if (d[i-1][m] & self.matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
@@ -424,8 +424,8 @@ class MatrixBinary(AMatrix):
 		closure = matrixM[:]
 		l=[[], matrixM[:]]
 
-		# loops on n-2
-		for i in range(2, self.dimM):
+		# loops on n-1
+		for i in range(1, self.dimM):
 			# mul
 			for m in range(self.dimM):
 				line = [('0' if (l[i-1][m] & self.matrixN[n]) == 0 else '1') for n in range(self.dimN)]
