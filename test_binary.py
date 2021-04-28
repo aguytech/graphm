@@ -27,18 +27,30 @@ print('me2', id(me2))
 print('m == me', m == me)
 print('me == me2', me == me2)
 print('me is me2', me is me2)
-
-n = 10
 """
 
+m = MatrixBinary(matrix=([1, 5, 0, 4, 10, 8, 14], 7))
+mm4 = MatrixBinary(matrix=([1, 5, 0, 4, 10, 8, 6], 7))
+mt = mm4.copy()
+print(mm4)
+for i in range(2, 5):
+	mm4 = mm4 * m
+	print(mm4)
+	print(i, mm4 == mt)
+	mt = mm4.copy()
+print(mm4.str())
+m2 = m * m
+m4 = m2 * m2
+print('m4')
+print(m4.str())
+print()
+print(mm4 == m4)
+
+"""
+n = 10
 m = MatrixBinary(random=(n, n))
 print('m', m)
 
-m1 = MatrixBinary(matrix=([1, 1, 0, 4, 10, 8], 6))
-print(m1.str())
-
-"""
-"""
 # manual closure
 mi = m + MatrixBinary(unity=n) 
 print('mi', mi)
@@ -55,6 +67,7 @@ for i in range(2, dim):
 	mt = mt * m
 	d[i] = mt
 print('d', d)
+"""
 
 """
 mi = m + MatrixBinary(unity=n)
@@ -69,7 +82,6 @@ for i in range(2, n):
 		break
 	mtmp = mt.copy()
 #print('mt', mt)
-"""
 
 print('--------')
 mc = m.get_closure()
@@ -77,8 +89,8 @@ print('--------')
 print('mc', mc)
 #print(mt == mc)
 #print('count mt', l)
-
 """
+
 """
 mc = m.get_connect()
 print('mt == mc', mt == mc['matrix'])
@@ -90,4 +102,5 @@ mc = m.get_connect_nodes(2, n-1)
 print('get_connect_node', mc['matrix'])
 print('c', mc['connect'])
 print('d', mc['deep'])
+"""
 
