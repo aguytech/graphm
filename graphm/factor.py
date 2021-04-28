@@ -23,24 +23,22 @@ class Factor(object):
 		return f"number: {self.number}\nfact: {self.fact}\ncount: {self.count}"
 	
 	def __str__(self):
-		def str_rec(fact):
+		def strrec(fact):
 			if isinstance(fact, int):
 				return str(fact[0].pop())
 			p = ''
-			for d in fact:
-				index, content = d.popitem()
-				content = str_rec(content)
-				if index == 0 and content == '0':
-					p += f"{index} + "
-				elif content == '0':
-					p += f"{index} + "
+			for element in fact:
+				if isinstance(element, dict):
+					index, content = element.popitem()
+					content = strrec(content)
+					p += f" {index}*({content}) + "
 				else:
-					p += f"{index}*({content}) + "
+					p += f"{element} + "
 					
 			return p.rstrip(' +')
 		
 		fact = deepcopy(self.fact)
-		p = str_rec(fact)
+		p = strrec(fact)
 		return p
 	
 	@staticmethod
@@ -128,7 +126,9 @@ class Factor(object):
 		def deep(content: list):
 			""" return deep element wich inside a set
 			""" 
-			return [next(iter(i)) if len(i) == 1 else i for i in content]
+			r = [next(iter(i)) if len(i) == 1 else i for i in content]
+			r.sort(reverse=True)
+			return r
 		def remove(content: list, index_s: set):
 			""" return content reduced by index
 			"""
