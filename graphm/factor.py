@@ -20,6 +20,14 @@ class Factor(object):
 		self.fact, self.count = Factor.factor(self.elementaries)
 	
 	def __repr__(self):
+		s = str(self.fact)
+		s = s.replace(': ', '*')
+		s = s.replace('[', '(')
+		s = s.replace(']', ')')
+		s = s.replace('{', '')
+		s = s.replace('}', '')
+		s = s.replace(',', ' +')
+		
 		return f"number: {self.number}\nfact: {self.fact}\ncount: {self.count}"
 	
 	def __str__(self):
@@ -85,20 +93,23 @@ class Factor(object):
 			return bases
 		
 		def calc(fact):
-			if isinstance(fact[0], set):
-				index = fact[0].pop()
-				return bases[index]
-			for d in fact:
-				index, content = d.popitem()
-				content = calc(content)
-				if index == 0 and str(content) == '0':
-					p = f"{index} + "
-				elif str(content) == '0':
-					p = f"{index} + "
-				else:
-					p = f"{index}*({content}) + "
-					
-			return p.rstrip(' +')
+			def strrec(fact):
+				if isinstance(fact, int):
+					return str(fact[0].pop())
+				p = ''
+				for element in fact:
+					if isinstance(element, dict):
+						index, content = element.popitem()
+						content = strrec(content)
+						p += f" {index}*({content}) + "
+					else:
+						p += f"{element} + "
+						
+				return p.rstrip(' +')
+			
+			fact = deepcopy(self.fact)
+			p = strrec(fact)
+			return p
 		
 		if not hasattr(obj, '__add__'):
 			raise ValueError("The given object has no method for addition")
