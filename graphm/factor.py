@@ -137,21 +137,19 @@ class Factor(object):
 			""" return the unique element according to the index and content
 			"""
 			content = content[0].pop()
-			if index and content:
-				r = {index: content}
-			elif index:
-				r = index
-			elif content:
-				r = content
+			if content:
+				if content != index:
+					r = {index: content}
+				else:
+					r = content
 			else:
-				r = 0
+				r = index
 			return r
 		def factorec(indexes: iter, fact: list, count: int):
 			if not indexes or not fact:
 				return (fact, count)
 			
 			for index in indexes:
-				
 				if isin(fact, index):
 					count += 1
 					content = [i for i in fact if isinstance(i, set) and index in i]
