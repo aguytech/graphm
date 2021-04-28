@@ -20,19 +20,19 @@ class Factor(object):
 		self.fact, self.count = Factor.factor(self.elementaries)
 	
 	def __repr__(self):
-		return f"number: {self.number}\nfacto: {self.facto}\ncount: {self.count}"
+		return f"number: {self.number}\nfact: {self.fact}\ncount: {self.count}"
 	
 	def __str__(self):
 		def str_rec(fact):
-			if isinstance(fact[0], set):
-				return fact[0].pop()
+			if isinstance(fact, int):
+				return str(fact[0].pop())
 			p = ''
 			for d in fact:
 				index, content = d.popitem()
 				content = str_rec(content)
-				if index == 0 and str(content) == '0':
+				if index == 0 and content == '0':
 					p += f"{index} + "
-				elif str(content) == '0':
+				elif content == '0':
 					p += f"{index} + "
 				else:
 					p += f"{index}*({content}) + "
@@ -79,70 +79,98 @@ class Factor(object):
 		return [Factor.get_power(c) for c in coefficients]
 		
 	def calculate(self, obj: object):
+		def bases(obj: object, max_e: int):
+			bases = {0: obj}
+			indexes = {i: 2**(i-1) if i > 0 else 0 for i in range(max_e.bit_length() + 1)}
+			for index in range(1, len(indexes)):
+				bases[indexes[index]] = bases[indexes[index - 1]] * bases[indexes[index - 1]]
+			return bases
+		
+		def calc(fact):
+			if isinstance(fact[0], set):
+				index = fact[0].pop()
+				return bases[index]
+			for d in fact:
+				index, content = d.popitem()
+				content = calc(content)
+				if index == 0 and str(content) == '0':
+					p = f"{index} + "
+				elif str(content) == '0':
+					p = f"{index} + "
+				else:
+					p = f"{index}*({content}) + "
+					
+			return p.rstrip(' +')
+		
 		if not hasattr(obj, '__add__'):
 			raise ValueError("The given object has no method for addition")
 		if not hasattr(obj, '__mul__'):
 			raise ValueError("The given object has no method for multiplication")
 		
-		def bases(obj: object, max_e: int):
-			elements = {0: obj}
-			indexes = {i: 2**i for i in range(1, max_e.bit_length() + 1)}
-			indexes[0] = 0
-			for index in indexes:
-				elements[indexes[index]] = elements[indexes[index - 1]] * elements[indexes[index - 1]]
-			return elements
-		
-		def str_rec(fact):
-			if isinstance(fact[0], set):
-				return fact[0].pop()
-			p = ''
-			for d in fact:
-				index, content = d.popitem()
-				content = str_rec(content)
-				if index == 0 and str(content) == '0':
-					p += f"{index} + "
-				elif str(content) == '0':
-					p += f"{index} + "
-				else:
-					p += f"{index}*({content}) + "
-					
-			return p.rstrip(' +')
-		
 		max_e = max({i for l in self.elementaries for i in l})
 		bases = bases(obj, max_e)
 		fact = deepcopy(self.fact)
-		p = str_rec(fact)
+		p = calc(fact)
 		return p
 
 	@staticmethod
 	def factor(elementaries: iter):
+		def isunique(content: list):
+			""" return True if each element in content set is unique in content
+			""" 
+			return len([i for c in content for i in c]) == len({i for c in content for i in c})
+		def isin(content: list, index: int):
+			""" return True if each element in content set is unique in content
+			""" 
+			if [1 for i in content if isinstance(i, int) and index == i] \
+			or [1 for i in content if isinstance(i, set) and index in i]:
+				return True
+		def deep(content: list):
+			""" return deep element wich inside a set
+			""" 
+			return [next(iter(i)) if len(i) == 1 else i for i in content]
+		def remove(content: list, index_s: set):
+			""" return content reduced by index
+			"""
+			return [i.difference(index_s) if i.difference(index_s) else {0} for i in content]
+		def unique(content: list, index: int):
+			""" return the unique element according to the index and content
+			"""
+			content = content[0].pop()
+			if index and content:
+				r = {index: content}
+			elif index:
+				r = index
+			elif content:
+				r = content
+			else:
+				r = 0
+			return r
 		def factorec(indexes: iter, fact: list, count: int):
 			if not indexes or not fact:
 				return (fact, count)
 			
-			for ii in range(len(indexes)):
-				count += 1
-				index = indexes[ii]
-				index_s = {index}
-				content = [fact[i] for i in range(len(fact)) if index in fact[i]]
-				[fact.remove(i) for i in content]
-				content = [v.difference(index_s) if v.difference(index_s) else {0} for v in content]
-				if len(content):
-					content, count = factorec(indexes[ii+1:], content, count)
-				if content:
-					fact.append({index: content})
+			for index in indexes:
+				
+				if isin(fact, index):
+					count += 1
+					content = [i for i in fact if isinstance(i, set) and index in i]
+					[fact.remove(i) for i in content]
+					content = remove(content, {index})
+					if isunique(content):
+						if len(content) == 1:
+							fact.append(unique(content, index))
+						else:
+							fact.append({index: deep(content)})
+					elif content:
+						content, count = factorec(indexes[indexes.index(index) +1:], content, count)
+						fact.append({index: content})
+						
 			return (fact, count)
 		
 		indexes = list(set.union(*elementaries, {0}))
 		indexes.sort(reverse=True)
-		count = 0
 		fact = [i.copy() for i in elementaries]
-		fact
-		return factorec(indexes, fact, count)
-				
+		return factorec(indexes, fact, 0)
 		
-		
-		
-		
-			
 		
