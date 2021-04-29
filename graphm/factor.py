@@ -17,38 +17,18 @@ class Factor(object):
 		self.number= number
 		self.coefficients = Factor.get_coefficients(number)
 		self.elementaries = Factor.get_elementaries(self.coefficients)
-		self.fact, self.count = Factor.factor(self.elementaries)
+		self.factors, self.count = Factor.factor(self.elementaries)
 	
 	def __repr__(self):
-		s = str(self.fact)
-		s = s.replace(': ', '*')
-		s = s.replace('[', '(')
-		s = s.replace(']', ')')
-		s = s.replace('{', '')
-		s = s.replace('}', '')
-		s = s.replace(',', ' +')
-		
-		return f"number: {self.number}\nfact: {self.fact}\ncount: {self.count}"
+		return f"number: {self.number}\nfactors: {self.factors}\ncount: {self.count}"
 	
 	def __str__(self):
-		def strrec(fact):
-			if isinstance(fact, int):
-				return str(fact[0].pop())
-			p = ''
-			for element in fact:
-				if isinstance(element, dict):
-					index, content = element.popitem()
-					content = strrec(content)
-					p += f" {index}*({content}) + "
-				else:
-					p += f"{element} + "
-					
-			return p.rstrip(' +')
+		string = str(self.factors)
+		d = {	': ': '*', ',': ' +', '[': '(', 	']': ')', '{': '', '}': ''}
+		for s, r in d.items():
+			string = string.replace(s, r)
+		return string.strip('()')
 		
-		fact = deepcopy(self.fact)
-		p = strrec(fact)
-		return p
-	
 	@staticmethod
 	def _dict_add(d: dict, index: int, item: iter) -> None:
 		""" add in place item in sets contained in passed dictionary
@@ -91,36 +71,46 @@ class Factor(object):
 			for index in range(1, len(indexes)):
 				bases[indexes[index]] = bases[indexes[index - 1]] * bases[indexes[index - 1]]
 			return bases
+		def calc(elements, content):
+			if isinstance(elements, list):
+				for element in elements:
+					result = content * bases[element] if content else bases[element]
+			else:
+				result = content * bases[elements] if content else bases[elements]
+			return result
+		def power(element, power, content):
+			result = element
+			for _ in range(1, power):
+				result = result * element
+			return  content * result if content else result
 		
-		def calc(fact):
-			def strrec(fact):
-				if isinstance(fact, int):
-					return str(fact[0].pop())
-				p = ''
-				for element in fact:
-					if isinstance(element, dict):
-						index, content = element.popitem()
-						content = strrec(content)
-						p += f" {index}*({content}) + "
-					else:
-						p += f"{element} + "
-						
-				return p.rstrip(' +')
+		def calcrec(factors):
+			content = None
+			if isinstance(factors, int):
+				return calc(factors, content)
 			
-			fact = deepcopy(self.fact)
-			p = strrec(fact)
-			return p
+			for elements in factors:
+				if isinstance(elements, dict):
+					index, value = elements.popitem()
+					result = calcrec(value)
+					content = power(bases[index],result, content)
+				else:
+					content = calc(elements, content)
+			return content
 		
 		if not hasattr(obj, '__add__'):
 			raise ValueError("The given object has no method for addition")
 		if not hasattr(obj, '__mul__'):
 			raise ValueError("The given object has no method for multiplication")
 		
-		max_e = max({i for l in self.elementaries for i in l})
-		bases = bases(obj, max_e)
-		fact = deepcopy(self.fact)
-		p = calc(fact)
-		return p
+		if obj:
+			max_e = max({i for l in self.elementaries for i in l})
+			bases = bases(obj, max_e)
+			factors = deepcopy(self.factors)
+			r = calcrec(factors)
+		else:
+			r = None
+		return r
 
 	@staticmethod
 	def factor(elementaries: iter):
@@ -156,30 +146,30 @@ class Factor(object):
 			else:
 				r = index
 			return r
-		def factorec(indexes: iter, fact: list, count: int):
-			if not indexes or not fact:
-				return (fact, count)
+		def factorec(indexes: iter, factors: list, count: int):
+			if not indexes or not factors:
+				return (factors, count)
 			
 			for index in indexes:
-				if isin(fact, index):
+				if isin(factors, index):
 					count += 1
-					content = [i for i in fact if isinstance(i, set) and index in i]
-					[fact.remove(i) for i in content]
-					content = remove(content, {index})
+					selected= [i for i in factors if isinstance(i, set) and index in i]
+					[factors.remove(i) for i in selected]
+					content = remove(selected, {index})
 					if isunique(content):
 						if len(content) == 1:
-							fact.append(unique(content, index))
+							factors.append(unique(content, index))
 						else:
-							fact.append({index: deep(content)})
+							factors.append({index: deep(content)})
 					elif content:
 						content, count = factorec(indexes[indexes.index(index) +1:], content, count)
-						fact.append({index: content})
+						factors.append({index: content})
 						
-			return (fact, count)
+			return (factors, count)
 		
 		indexes = list(set.union(*elementaries, {0}))
 		indexes.sort(reverse=True)
-		fact = [i.copy() for i in elementaries]
-		return factorec(indexes, fact, 0)
+		factors = [i.copy() for i in elementaries]
+		return factorec(indexes, factors, 0)
 		
 		
