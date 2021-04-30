@@ -29,6 +29,18 @@ class Factor(object):
 			string = string.replace(s, r)
 		return string.strip('()')
 		
+	# TODO: wrong string replace
+	def str_factor(self):
+		string = str(self.factors)
+		d = {	': ': '*', ',': ' *', '[': '(', 	']': ')', '{': '', '}': ''}
+		for s, r in d.items():
+			string = string.replace(s, r)
+		indexes = list(set.union(*self.elementaries))
+		indexes.sort(reverse=True)
+		for index in indexes:
+			string = string.replace(str(index), str(2**index))
+		return string.strip('()')
+		
 	@staticmethod
 	def _dict_add(d: dict, index: int, item: iter) -> None:
 		""" add in place item in sets contained in passed dictionary
@@ -67,10 +79,20 @@ class Factor(object):
 	def calculate(self, obj: object):
 		def bases(obj: object, max_e: int):
 			bases = {0: obj}
-			indexes = {i: 2**(i-1) if i > 0 else 0 for i in range(max_e.bit_length() + 1)}
-			for index in range(1, len(indexes)):
-				bases[indexes[index]] = bases[indexes[index - 1]] * bases[indexes[index - 1]]
+#			indexes = {i: 2**(i-1) if i >0 else 0 for i in range(max_e.bit_length() + 1)}
+#			indexes_factor = {i: 2**(indexes[i]) for i in range(len(indexes))}
+			indexes = {i: 2**i for i in range(max_e.bit_length())}
+			indexes_factor = {i: 2**(indexes[i]) for i in range(len(indexes))}
+			index_dec = [indexes[i] for i in range(len(indexes) - 1)]
+			index_dec.insert(0,1)
+			
+			base_tmp = bases[0]
+			for i in range(len(indexes)):
+				for ii in range(index_dec[i]):
+					base_tmp = base_tmp * base_tmp
+				bases[indexes[i]] = base_tmp
 			return bases
+
 		def calc(elements, content):
 			if isinstance(elements, list):
 				for element in elements:
@@ -84,15 +106,14 @@ class Factor(object):
 				result = result * element
 			return  content * result if content else result
 		
-		def calcrec(factors):
-			content = None
+		def calcrec(factors, element):
 			if isinstance(factors, int):
-				return calc(factors, content)
+				return calc(factors, element)
 			
 			for elements in factors:
 				if isinstance(elements, dict):
 					index, value = elements.popitem()
-					result = calcrec(value)
+					result = calcrec(value, bases(index))
 					content = power(bases[index],result, content)
 				else:
 					content = calc(elements, content)
@@ -104,13 +125,12 @@ class Factor(object):
 			raise ValueError("The given object has no method for multiplication")
 		
 		if obj:
-			max_e = max({i for l in self.elementaries for i in l})
-			bases = bases(obj, max_e)
+			bases = bases(obj, max({i for l in self.elementaries for i in l}))
 			factors = deepcopy(self.factors)
-			r = calcrec(factors)
+			result = calcrec(factors, None)
 		else:
-			r = None
-		return r
+			result = None
+		return result
 
 	@staticmethod
 	def factor(elementaries: iter):
