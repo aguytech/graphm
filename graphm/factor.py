@@ -14,10 +14,11 @@ class Factor(object):
 		'''
 		Constructor
 		'''
-		self.number= number
+		self.number = number
+		self.real = True
 		self.coefficients = Factor.get_coefficients(number)
-		self.elementaries = Factor.get_elementaries(self.coefficients)
-		self.factors, self.count = Factor.factor(self.elementaries)
+		self.elementaries = Factor.get_elementaries(self.coefficients, real=self.real)
+		self.factors, self.count = Factor.get_factor(self.elementaries, real=self.real)
 	
 	def __repr__(self):
 		return f"number: {self.number}\nfactors: {self.factors}\ncount: {self.count}"
@@ -42,15 +43,6 @@ class Factor(object):
 		return string.strip('()')
 		
 	@staticmethod
-	def _dict_add(d: dict, index: int, item: iter) -> None:
-		""" add in place item in sets contained in passed dictionary
-		""" 
-		if index in d:
-			d[index].add(item)
-		else:
-			d[index] = {item}
-		
-	@staticmethod
 	def get_coefficients(number: int) -> list:
 		num = Factor.get_int2list(number)
 		num.reverse()
@@ -73,22 +65,23 @@ class Factor(object):
 		return p if p else {0}
 
 	@staticmethod
-	def get_elementaries(coefficients: iter):
-		return [Factor.get_power(c) for c in coefficients]
+	def get_elementaries(coefficients: iter, real: bool=False):
+		"""
+		:param bool real: if True return the real factor format: 2**factor
+		"""
+		elementaries = [Factor.get_power(c) for c in coefficients]
+		if real:
+			elementaries = [{2**i for i in s} for s in elementaries]
+		return elementaries 
 		
 	def calculate(self, obj: object):
 		def bases(obj: object, max_e: int):
+			indexes_dec = [indexes[i] for i in range(len(indexes) - 1)]
+			indexes_dec.insert(0,1)
 			bases = {0: obj}
-#			indexes = {i: 2**(i-1) if i >0 else 0 for i in range(max_e.bit_length() + 1)}
-#			indexes_factor = {i: 2**(indexes[i]) for i in range(len(indexes))}
-			indexes = {i: 2**i for i in range(max_e.bit_length())}
-			indexes_factor = {i: 2**(indexes[i]) for i in range(len(indexes))}
-			index_dec = [indexes[i] for i in range(len(indexes) - 1)]
-			index_dec.insert(0,1)
-			
 			base_tmp = bases[0]
 			for i in range(len(indexes)):
-				for ii in range(index_dec[i]):
+				for _ in range(indexes_dec[i]):
 					base_tmp = base_tmp * base_tmp
 				bases[indexes[i]] = base_tmp
 			return bases
@@ -102,19 +95,22 @@ class Factor(object):
 			return result
 		def power(element, power, content):
 			result = element
+			for _ in range(indexes_dec[i]):
+				base_tmp = base_tmp * base_tmp
+			bases[indexes[i]] = base_tmp
 			for _ in range(1, power):
 				result = result * element
 			return  content * result if content else result
 		
-		def calcrec(factors, element):
+		def calcrec(factors, content=None):
 			if isinstance(factors, int):
-				return calc(factors, element)
+				return indexes_factor[factors]
 			
 			for elements in factors:
 				if isinstance(elements, dict):
-					index, value = elements.popitem()
-					result = calcrec(value, bases(index))
-					content = power(bases[index],result, content)
+					element, factor = elements.popitem()
+					result = calcrec(factor)
+					content = power(bases[element], result, content)
 				else:
 					content = calc(elements, content)
 			return content
@@ -125,48 +121,56 @@ class Factor(object):
 			raise ValueError("The given object has no method for multiplication")
 		
 		if obj:
-			bases = bases(obj, max({i for l in self.elementaries for i in l}))
+			max_factor = max({i for l in self.elementaries for i in l})
+			indexes = [2**i for i in range(max_factor.bit_length())]
+			indexes_factor = [2**(2**i) for i in range(len(indexes))]
+			bases = bases(obj, max_factor)
 			factors = deepcopy(self.factors)
-			result = calcrec(factors, None)
+			result = calcrec(factors)
 		else:
 			result = None
 		return result
 
 	@staticmethod
-	def factor(elementaries: iter):
+	def get_factor(elementaries: iter, real: bool=False):
 		def isunique(content: list):
 			""" return True if each element in content set is unique in content
 			""" 
 			return len([i for c in content for i in c]) == len({i for c in content for i in c})
+		
 		def isin(content: list, index: int):
 			""" return True if each element in content set is unique in content
 			""" 
 			if [1 for i in content if isinstance(i, int) and index == i] \
 			or [1 for i in content if isinstance(i, set) and index in i]:
 				return True
+			
 		def deep(content: list):
 			""" return deep element wich inside a set
 			""" 
-			r = [next(iter(i)) if len(i) == 1 else i for i in content]
-			r.sort(reverse=True)
-			return r
+			result = [next(iter(i)) if len(i) == 1 else i for i in content]
+			result.sort(reverse=True)
+			return result
+		
 		def remove(content: list, index_s: set):
 			""" return content reduced by index
 			"""
-			return [i.difference(index_s) if i.difference(index_s) else {0} for i in content]
+			return [i.difference(index_s) if i.difference(index_s) else {neutral} for i in content]
+		
 		def unique(content: list, index: int):
 			""" return the unique element according to the index and content
 			"""
 			content = content[0].pop()
-			if content:
+			if content and content != neutral:
 				if content != index:
-					r = {index: content}
+					result= {index: content}
 				else:
-					r = content
+					result= content
 			else:
-				r = index
-			return r
-		def factorec(indexes: iter, factors: list, count: int):
+				result= index
+			return result
+		
+		def factorec(indexes: iter, factors: list, count: int=0):
 			if not indexes or not factors:
 				return (factors, count)
 			
@@ -187,9 +191,10 @@ class Factor(object):
 						
 			return (factors, count)
 		
-		indexes = list(set.union(*elementaries, {0}))
+		neutral = 1 if real else 0
+		indexes = list(set.union(*elementaries, {neutral}))
 		indexes.sort(reverse=True)
 		factors = [i.copy() for i in elementaries]
-		return factorec(indexes, factors, 0)
+		return factorec(indexes, factors)
 		
 		
