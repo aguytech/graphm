@@ -667,11 +667,13 @@ class MatrixBinary(AMatrix):
 		00001,00100,00010
 		"""
 		matrixM, self.dimN = matrix
-		self.matrixM = matrixM[:]
+		self.matrixM = matrixM
+		# TODO: remove
+		#self.matrixM = matrixM[:]
 		self.dimM = len(self.matrixM)
 		self.matrixM2N()
 	
-	def set_from_random(self, random: tuple, level: int=0) -> None:
+	def set_from_random(self, random: tuple, level: int=200) -> None:
 		""" Set a matrix containing random booleans in integer representation
 		
 		the level represents the quantity of 0 compared to 1 (0-10)
@@ -693,12 +695,12 @@ class MatrixBinary(AMatrix):
 		self._set_dim(dimM, dimN)
 		
 		level_max = 1000
-		matrix = [['1' if random.randrange(level_max) < level else '0' for _ in range(dimN)] for _ in range(dimM)]
+		matrix = [['1' if rnd.randrange(level_max) < level else '0' for _ in range(dimN)] for _ in range(dimM)]
 		# reflexivity
 		if self.isreflexive:
 			matrix = [[matrix[m][n] if m != n else '1' for n in range(dimN)] for m in range(dimM)]
 		
-		self.matrixM = [[int('0b' + ''.join(line), 2)] for line in matrix]
+		self.matrixM = [int('0b' + ''.join(line), 2) for line in matrix]
 		self.matrixM2N()
 
 	def set_from_unity(self, unity: int) -> None:
