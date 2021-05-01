@@ -4,6 +4,21 @@
 from graphm import MatrixBinary
 
 """
+generate random matrice
+import random
+
+coef_max = 1000
+coef = 1
+dim = 100
+m = [[1 if random.randrange(coef_max) < coef else 0 for i in range(dim)] for _ in range(dim)]
+m1 = [i for l in m for i in l if i == 1]
+lm1 = len(m1)
+dim2 = dim*dim
+print(l)
+"""	
+
+
+"""
 m1 = MatrixBinary(matrix=([1, 1, 0, 4, 10, 8], 6))
 print(m1.str())
 m1 = MatrixBinary(boolean=['010101','101010','101011','111000'])
@@ -29,6 +44,7 @@ print('me == me2', me == me2)
 print('me is me2', me is me2)
 """
 
+"""
 m = MatrixBinary(matrix=([1, 5, 0, 4, 10, 8, 14], 7))
 mm4 = MatrixBinary(matrix=([1, 5, 0, 4, 10, 8, 6], 7))
 mt = mm4.copy()
@@ -45,6 +61,9 @@ print('m4')
 print(m4.str())
 print()
 print(mm4 == m4)
+m_4 = m**4
+print(m_4 == m4)
+"""
 
 """
 n = 10
