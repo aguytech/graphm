@@ -3,6 +3,7 @@ Created on Apr 26, 2021
 
 @author: nikita
 '''
+import math
 from copy import deepcopy
 
 class Factor(object):
@@ -16,15 +17,16 @@ class Factor(object):
 		'''
 		self.number = number
 		self.real = True
-		self.coefficients = Factor.get_coefficients(number)
+		self.coefficients = Factor.get_exponents(number)
 		self.elementaries = Factor.get_elementaries(self.coefficients, real=self.real)
-		self.factors, self.count = Factor.get_factor(self.elementaries, real=self.real)
+		self.factorization, self.count = Factor.get_factorization(self.elementaries, real=self.real)
+		
 	
 	def __repr__(self):
-		return f"number: {self.number}\nfactors: {self.factors}\ncount: {self.count}"
+		return f"number: {self.number}\nfactorization: {self.factorization}\ncount: {self.count}"
 	
 	def __str__(self):
-		string = str(self.factors)
+		string = str(self.factorization)
 		d = {	': ': '*', ',': ' +', '[': '(', 	']': ')', '{': '', '}': ''}
 		for s, r in d.items():
 			string = string.replace(s, r)
@@ -32,7 +34,7 @@ class Factor(object):
 		
 	# TODO: wrong string replace
 	def str_factor(self):
-		string = str(self.factors)
+		string = str(self.factorization)
 		d = {	': ': '*', ',': ' *', '[': '(', 	']': ')', '{': '', '}': ''}
 		for s, r in d.items():
 			string = string.replace(s, r)
@@ -42,27 +44,79 @@ class Factor(object):
 			string = string.replace(str(index), str(2**index))
 		return string.strip('()')
 		
-	@staticmethod
-	def get_coefficients(number: int) -> list:
-		num = Factor.get_int2list(number)
-		num.reverse()
-		return [i for i in range(len(num)) if num[i] == '1']
+	def calculate(self, obj: object):
+		def set_bases(obj: object, max_factor: int):
+			indexes = [2**i for i in range(1, max_factor.bit_length())]
+			bases = {1: obj}
+			base_tmp =bases[1]
+			for i in range(len(indexes)):
+				base_tmp *= base_tmp
+				bases[indexes[i]] = base_tmp
+			return bases
+		
+		def add_bases(factor):
+			factor_loop = max(bases.keys())
+			loop = int(math.log(factor / factor_loop, 2))
+			base_tmp = bases[factor_loop]
+			for _ in range(loop):
+				base_tmp *= base_tmp
+				factor_loop *= 2
+				bases[factor_loop] = base_tmp
 
-	@staticmethod
-	def get_int2list(number: int) -> list:
-		return list(bin(number)[2:])
+		def calc(factor, factorsof):
+			factor_final = factor * factorsof
+			if factor_final not in bases.keys():
+				add_bases(factor_final)
+			return bases[factor_final]
+			"""
+			element = bases[factor]
+			result = element
+			loop = int(math.log(factor / factorof, 2))
+			for _ in range(loop):
+				result *= element
+			return result
+			"""
+		
+		def set_content(result, content, op):
+			if content != 1:
+				content = content * result
+				op += 1
+			else:
+				content = result
+			return (content, op)
+			
+		def calcrec(factorization, factor=1, op=0):
+			if isinstance(factorization, int):
+				return factorization
+			
+			content = 1
+			for element in factorization:
+				if isinstance(element, dict):
+					factor_loop, factors = element.popitem()
+					result, op = calcrec(factors, factor * factor_loop, op)
+					content, op = set_content(result, content, op)
+				else:
+					result = calc(factor, element)
+					content, op = set_content(result, content, op)
+			return (content, op)
+		
+		if not hasattr(obj, '__mul__'):
+			raise ValueError("The given object has no method for multiplication")
+		
+		if obj:
+			max_factor = max({i for l in self.elementaries for i in l})
+			bases = set_bases(obj, max_factor)
+			factorization = deepcopy(self.factorization)
+			result, op = calcrec(factorization)
+		else:
+			result = None
+		op += len(bases) - 1
+		return (result, op)
 
 	@staticmethod
 	def get_bases(number: int) -> list:
 		length = len(Factor.get_int2list(number))
 		return [2**i for i in range(1, length)]
-
-	@staticmethod
-	def get_power(number: int) -> set:
-		n = list(bin(number)[2:])
-		n.reverse()
-		p = {2**i for i,n in enumerate(n) if n =='1'}
-		return p if p else {0}
 
 	@staticmethod
 	def get_elementaries(coefficients: iter, real: bool=False):
@@ -74,65 +128,14 @@ class Factor(object):
 			elementaries = [{2**i for i in s} for s in elementaries]
 		return elementaries 
 		
-	def calculate(self, obj: object):
-		def bases(obj: object, max_e: int):
-			indexes_dec = [indexes[i] for i in range(len(indexes) - 1)]
-			indexes_dec.insert(0,1)
-			bases = {0: obj}
-			base_tmp = bases[0]
-			for i in range(len(indexes)):
-				for _ in range(indexes_dec[i]):
-					base_tmp = base_tmp * base_tmp
-				bases[indexes[i]] = base_tmp
-			return bases
-
-		def calc(elements, content):
-			if isinstance(elements, list):
-				for element in elements:
-					result = content * bases[element] if content else bases[element]
-			else:
-				result = content * bases[elements] if content else bases[elements]
-			return result
-		def power(element, power, content):
-			result = element
-			for _ in range(indexes_dec[i]):
-				base_tmp = base_tmp * base_tmp
-			bases[indexes[i]] = base_tmp
-			for _ in range(1, power):
-				result = result * element
-			return  content * result if content else result
-		
-		def calcrec(factors, content=None):
-			if isinstance(factors, int):
-				return indexes_factor[factors]
-			
-			for elements in factors:
-				if isinstance(elements, dict):
-					element, factor = elements.popitem()
-					result = calcrec(factor)
-					content = power(bases[element], result, content)
-				else:
-					content = calc(elements, content)
-			return content
-		
-		if not hasattr(obj, '__add__'):
-			raise ValueError("The given object has no method for addition")
-		if not hasattr(obj, '__mul__'):
-			raise ValueError("The given object has no method for multiplication")
-		
-		if obj:
-			max_factor = max({i for l in self.elementaries for i in l})
-			indexes = [2**i for i in range(max_factor.bit_length())]
-			indexes_factor = [2**(2**i) for i in range(len(indexes))]
-			bases = bases(obj, max_factor)
-			factors = deepcopy(self.factors)
-			result = calcrec(factors)
-		else:
-			result = None
-		return result
+	@staticmethod
+	def get_exponents(number: int) -> list:
+		num = Factor.get_int2list(number)
+		num.reverse()
+		return [i for i in range(len(num)) if num[i] == '1']
 
 	@staticmethod
-	def get_factor(elementaries: iter, real: bool=False):
+	def get_factorization(elementaries: iter, real: bool=False):
 		def isunique(content: list):
 			""" return True if each element in content set is unique in content
 			""" 
@@ -170,31 +173,42 @@ class Factor(object):
 				result= index
 			return result
 		
-		def factorec(indexes: iter, factors: list, count: int=0):
-			if not indexes or not factors:
-				return (factors, count)
+		def factorec(indexes: iter, factorization: list, count: int=0):
+			if not indexes or not factorization:
+				return (factorization, count)
 			
 			for index in indexes:
-				if isin(factors, index):
+				if isin(factorization, index):
 					count += 1
-					selected= [i for i in factors if isinstance(i, set) and index in i]
-					[factors.remove(i) for i in selected]
+					selected= [i for i in factorization if isinstance(i, set) and index in i]
+					[factorization.remove(i) for i in selected]
 					content = remove(selected, {index})
 					if isunique(content):
 						if len(content) == 1:
-							factors.append(unique(content, index))
+							factorization.append(unique(content, index))
 						else:
-							factors.append({index: deep(content)})
+							factorization.append({index: deep(content)})
 					elif content:
 						content, count = factorec(indexes[indexes.index(index) +1:], content, count)
-						factors.append({index: content})
+						factorization.append({index: content})
 						
-			return (factors, count)
+			return (factorization, count)
 		
 		neutral = 1 if real else 0
 		indexes = list(set.union(*elementaries, {neutral}))
 		indexes.sort(reverse=True)
-		factors = [i.copy() for i in elementaries]
-		return factorec(indexes, factors)
+		factorization = [i.copy() for i in elementaries]
+		return factorec(indexes, factorization)
 		
+	@staticmethod
+	def get_int2list(number: int) -> list:
+		return list(bin(number)[2:])
+
+	@staticmethod
+	def get_power(number: int) -> set:
+		n = list(bin(number)[2:])
+		n.reverse()
+		p = {2**i for i,n in enumerate(n) if n =='1'}
+		return p if p else {0}
+
 		

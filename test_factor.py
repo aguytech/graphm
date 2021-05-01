@@ -1,53 +1,103 @@
 from graphm.factor import Factor
+exp = 16
+max = 1024
+
+"""
+import math
+c = 0
+lc = {}
+n = 16
+while n < max:
+	c += 1
+	n += n
+	lc[c] = (n, n//exp, int(math.log(n//exp, 2)))
+
+print(lc)
+
+c = 0
+lc = {}
+n = 16
+while n < max:
+	c += 1
+	n += n
+	lc[c] = (n, n//exp)
+
+print(lc)
+
+m = 8
+i2 = [2**i for i in range(m)]
+i22 = [2**2**i for i in range(m)]
+
+lc = {}
+for i in range(len(i22)):
+	c = 0
+	i22_tmp = i22[i-1]
+	while i22_tmp < i22[i]:
+		c += 1
+		i22_tmp = i22_tmp + i22_tmp
+	lc[i22[i]] = c
+
+print(lc)
+"""
+
+"""
 """
 number = 242
 f = Factor(number)
-print(f)
-
-number = 11
-f = Factor(number)
-print(f)
-"""
+result, count = f.calculate(2)
+print(result, count)
+result, count = f.calculate(3)
+print(result, count)
 
 """
-"""
-r = Factor.get_bases(8)
-
-
 n = 242
 f = Factor(n)
-print(f)
+print(n ,f)
 n = 65536
 f = Factor(n)
+print(n ,f)
 n = 1024
 f = Factor(n)
+print(n ,f)
+n = 1023
+f = Factor(n)
+print(n ,f)
 n = 0
 f = Factor(n)
-n = f.calculate(2)
-print()
-n = 1023
-print(Factor(n))
+print(n ,f)
+n = 65536
+f = Factor(n)
+print(n ,f)
+"""
 
 """
+n = 1023
+n = 242
+f = Factor(n)
+print(n ,f)
+#f.str_factor()
+r = f.calculate(2)
+print(n ,r)
+
 l = [{2: [{1}]}, {1: [{0}]}, {0: [{0}]}]
 number = 212
 print('number', number)
-coefficients = Factor.get_coefficients(number)
-print('coefficients', coefficients)
-elementaries = Factor.get_elementaries(coefficients)
+exponents = Factor.get_exponents(number)
+print('exponents', exponents)
+elementaries = Factor.get_elementaries(exponents)
 print('elementaries', elementaries)
-facto = Factor.factor(elementaries)
-print('facto', facto)
+factor = Factor.get_factor(elementaries)
+print('factor', factor)
 
 print()
 number = 11
 print('number', number)
-coefficients = Factor.get_coefficients(number)
-print('coefficients', coefficients)
-elementaries = Factor.get_elementaries(coefficients)
+exponents = Factor.get_exponents(number)
+print('exponents', exponents)
+elementaries = Factor.get_elementaries(exponents)
 print('elementaries', elementaries)
-facto = Factor.factor(elementaries)
-print('facto', facto)
+factor = Factor.get_factor(elementaries)
+print('factor', factor)
 """
 
 """
