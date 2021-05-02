@@ -5,7 +5,7 @@ Created on Apr 26, 2021
 '''
 # for doctest
 if __name__ == "matrixbinaryslides" :
-	from graphm import MatrixBinary
+	from .matrixbinary import MatrixBinary
 
 class MatrixBinarySlides(object):
 	""" Manage slides of binary matrices with closure

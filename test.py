@@ -1,3 +1,6 @@
+
+
+"""
 from graphm import MatrixBinary
 from graphm import MatrixBinarySlides
 from graphm import GraphM
@@ -59,7 +62,7 @@ g.draw(f"files/test.png")
 
 g = GraphM(nodes=['A','B','C','D','E'], edges=('AD','DA','DC','CA','BC','BB'))
 g.draw(f"files/test2.png")
-
+"""
 
 """
 g.draw(f"docs/src/files/graph1.png", label='', nodes_style='int')

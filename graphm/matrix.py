@@ -4,7 +4,7 @@ Created on Apr 26, 2021
 @author: salem Aguemoun
 '''
 import functools
-from graphm import MatrixBoolean
+from .matrixboolean import MatrixBoolean
 
 class Matrix(MatrixBoolean):
 	""" Manage a arithmetic matrix

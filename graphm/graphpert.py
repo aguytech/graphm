@@ -3,7 +3,7 @@ Created on Apr 26, 2021
 
 @author: salem Aguemoun
 '''
-from graphm import Graph
+from .graph import Graph
 
 class GraphPert(Graph):
 	""" Manage Pert graph.

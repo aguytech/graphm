@@ -1,7 +1,6 @@
 
 """
 	PERFORMANCE MATRIX_BOOLEAN
-"""
 from graphm import MatrixBoolean
 import datetime
 
@@ -16,10 +15,30 @@ for i in range(n-2):
 t2 = datetime.datetime.now()
 print(m)
 print(t2 - t1)
+"""
 
 """
 	PERFORMANCE MATRIX_BINARY
 """
+import graphm.matrixbinary
+import datetime
+MatrixBinary = graphm.matrixbinary.MatrixBinary
+
+n = 1000
+loop = 10
+m = MatrixBinary(random=(n, n))
+print(m)
+
+t1 = datetime.datetime.now()
+s = m
+for i in range(1, loop):
+	s = s * m
+t2 = datetime.datetime.now()
+print(m)
+print(t2 - t1)
+
+"""
+	PERFORMANCE MATRIX_BINARY
 from graphm import MatrixBinary
 import datetime
 
@@ -31,6 +50,7 @@ for n in range(10,210,10):
 	mc = m.get_closure_slides_dict()
 	t2 = datetime.datetime.now()
 	print(n, " : ", t2 - t1)
+"""
 
 """
 	PERFORMANCE MATRIX_BINARY_SLIDES

@@ -4,6 +4,8 @@ Created on Apr 26, 2021
 @author: salem Aguemoun
 '''
 import pygraphviz
+from .matrixboolean import MatrixBoolean
+from .matrixbinary import MatrixBinary
 
 class Graph(object):
 	""" Manage graph with matrix.
@@ -100,8 +102,8 @@ class Graph(object):
 		:param dict \*\*d: options to specify the type of matrix
 		
 			:matrix: (list[int]) matrix in [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...)
-			:boolean: (list[int]) matrix in [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...)
-			:binary: matrixM in [int, ...]
+			:boolean: (list[int]) matrix in [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...) or class MatrixBoolean
+			:binary: matrixM in [int, ...] or class MatrixBinary
 			:edges: (tuple/list) list of edges in tuple format (nodeIn, nodeOut)
 			:nodes: (tuple/list) optional list of nodes
 			:sep: (str) separator for elements in string like optionally for node, edges,  see :class:`Graph.sep`
@@ -499,7 +501,11 @@ class Graph(object):
 		nodes A B C
 		edges A-C B-A C-B
 		"""
-		matrix = binary
+		if isinstance(binary, MatrixBinary):
+			matrix = binary.matrixM
+		else:
+			matrix = binary
+
 		if not matrix:
 			raise ValueError("Wrong empty matrix")
 
@@ -545,7 +551,11 @@ class Graph(object):
 		nodes A B C D
 		edges A-D B-C C-D D-A D-C D-D
 		"""
-		matrix = boolean
+		if isinstance(boolean, MatrixBoolean):
+			matrix = boolean.matrix
+		else:
+			matrix = boolean
+			
 		if not matrix:
 			raise ValueError("Wrong empty matrix")
 		

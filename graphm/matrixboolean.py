@@ -5,7 +5,7 @@ Created on Apr 26, 2021
 '''
 import functools
 import random as rnd
-from graphm.amatrix import AMatrix
+from .amatrix import AMatrix
 
 class MatrixBoolean(AMatrix):
 	""" Manage a boolean matrix

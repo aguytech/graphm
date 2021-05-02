@@ -1,10 +1,12 @@
 """
 	MATRIXBINARY
 """
-from graphm import MatrixBinary
+import graphm
+MatrixBinary = graphm.matrixbinary.MatrixBinary
 
 """
 generate random matrice
+"""
 import random
 
 coef_max = 1000
@@ -14,8 +16,6 @@ m = [[1 if random.randrange(coef_max) < coef else 0 for i in range(dim)] for _ i
 m1 = [i for l in m for i in l if i == 1]
 lm1 = len(m1)
 dim2 = dim*dim
-print(l)
-"""	
 
 
 """

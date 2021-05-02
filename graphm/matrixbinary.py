@@ -4,7 +4,7 @@ Created on Apr 26, 2021
 @author: salem Aguemoun
 '''
 import random as rnd
-from graphm.amatrix import AMatrix
+from .amatrix import AMatrix
 
 class MatrixBinary(AMatrix):
 	""" Manage a boolean matrix with binary lines
