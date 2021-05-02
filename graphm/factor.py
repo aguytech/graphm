@@ -1,9 +1,8 @@
 '''
 Created on Apr 26, 2021
 
-@author: nikita
+@author: salem Aguemoun
 '''
-import math
 from copy import deepcopy
 
 class Factor(object):
@@ -48,7 +47,7 @@ class Factor(object):
 		def set_bases(obj: object, max_factor: int):
 			indexes = [2**i for i in range(1, max_factor.bit_length())]
 			bases = {1: obj}
-			base_tmp =bases[1]
+			base_tmp = bases[1]
 			for i in range(len(indexes)):
 				base_tmp *= base_tmp
 				bases[indexes[i]] = base_tmp
@@ -56,7 +55,7 @@ class Factor(object):
 		
 		def add_bases(factor):
 			factor_loop = max(bases.keys())
-			loop = int(math.log(factor / factor_loop, 2))
+			loop = factor.bit_length() - factor_loop.bit_length()
 			base_tmp = bases[factor_loop]
 			for _ in range(loop):
 				base_tmp *= base_tmp
@@ -68,14 +67,6 @@ class Factor(object):
 			if factor_final not in bases.keys():
 				add_bases(factor_final)
 			return bases[factor_final]
-			"""
-			element = bases[factor]
-			result = element
-			loop = int(math.log(factor / factorof, 2))
-			for _ in range(loop):
-				result *= element
-			return result
-			"""
 		
 		def set_content(result, content, op):
 			if content != 1:
@@ -86,14 +77,15 @@ class Factor(object):
 			return (content, op)
 			
 		def calcrec(factorization, factor=1, op=0):
-			if isinstance(factorization, int):
-				return factorization
-			
 			content = 1
+			
 			for element in factorization:
 				if isinstance(element, dict):
 					factor_loop, factors = element.popitem()
-					result, op = calcrec(factors, factor * factor_loop, op)
+					if isinstance(factors, int):
+						result = calc(factor_loop, factors)
+					else:
+						result, op = calcrec(factors, factor * factor_loop, op)
 					content, op = set_content(result, content, op)
 				else:
 					result = calc(factor, element)
@@ -103,14 +95,17 @@ class Factor(object):
 		if not hasattr(obj, '__mul__'):
 			raise ValueError("The given object has no method for multiplication")
 		
-		if obj:
+		op = 0
+		if obj and self.factorization:
 			max_factor = max({i for l in self.elementaries for i in l})
 			bases = set_bases(obj, max_factor)
 			factorization = deepcopy(self.factorization)
 			result, op = calcrec(factorization)
+			op += len(bases) - 1
+		elif obj and not self.factorization:
+			result = obj
 		else:
 			result = None
-		op += len(bases) - 1
 		return (result, op)
 
 	@staticmethod

@@ -4,6 +4,16 @@ max = 1024
 
 """
 import math
+
+base = 4
+l = [2**i for i in range(base,12)]
+for i in l:
+	print(int(math.log2(i // base)), i.bit_length() - base.bit_length())
+
+l = [2**i for i in range(12)]
+for i in l:
+	print(int(math.log2(i)), i.bit_length())
+
 c = 0
 lc = {}
 n = 16
@@ -41,18 +51,27 @@ print(lc)
 """
 
 """
-"""
 number = 242
 f = Factor(number)
 result, count = f.calculate(2)
 print(result, count)
 result, count = f.calculate(3)
 print(result, count)
+"""
 
 """
-n = 242
-f = Factor(n)
-print(n ,f)
+n = 2
+for f in (0, 242, 1024, 1023, 65536, 65535):
+	factor = Factor(f)
+	print(f)
+	print(factor)
+	result, count = factor.calculate(n)
+	print(result)
+	print(count)
+	print(result == n**f)
+	print()
+
+
 n = 65536
 f = Factor(n)
 print(n ,f)
@@ -63,9 +82,6 @@ n = 1023
 f = Factor(n)
 print(n ,f)
 n = 0
-f = Factor(n)
-print(n ,f)
-n = 65536
 f = Factor(n)
 print(n ,f)
 """
