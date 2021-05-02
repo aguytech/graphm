@@ -61,6 +61,25 @@ class MatrixBoolean(AMatrix):
 				r.matrix[m][n] = self.get_value(m, n) | matrix.get_value(m, n)
 		return r 
 		
+	def __eq__(self, matrix: 'MatrixBoolean') -> bool:
+		""" Return equality between itself and argument 
+		
+		:param MatrixBoolean matrix: matrix to be added to the instance
+		:return: True if this instance equals to that given
+		:rtype: bool
+		
+		>>> m = MatrixBoolean(matrix=['00001', '00100', '00010'])
+		>>> m2 = MatrixBoolean(matrix=['00001', '00100', '00010'])
+		>>> m == m2
+		True
+		"""
+		if not isinstance(matrix, MatrixBoolean):
+			raise ValueError("argument must be an instance of class 'MatrixBoolean")
+		
+		if self.dimM != matrix.dimM or self.dimN != matrix.dimN or self.matrix != matrix.matrix:
+			return False
+		return True
+	
 	def __mul__(self, matrix: 'MatrixBoolean') -> 'MatrixBoolean':
 		""" Return the matrix multiplication with a logical '&'
 		between instance and that passed in argument
