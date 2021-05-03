@@ -29,7 +29,8 @@ class Factor(object):
 		d = {	': ': '*', ',': ' +', '[': '(', 	']': ')', '{': '', '}': ''}
 		for s, r in d.items():
 			string = string.replace(s, r)
-		return string.strip('()')
+		string = string[1:-1] if string[0] == '(' else string
+		return string
 		
 	# TODO: wrong string replace
 	def str_factor(self):
@@ -144,9 +145,9 @@ class Factor(object):
 				return True
 			
 		def deep(content: list):
-			""" return deep element wich inside a set
+			""" return deep element which inside a set
 			""" 
-			result = [next(iter(i)) if len(i) == 1 else i for i in content]
+			result = [i for j in content for i in j]
 			result.sort(reverse=True)
 			return result
 		
