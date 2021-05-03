@@ -79,6 +79,9 @@ class MatrixBinary(AMatrix):
 		>>> m == m2
 		True
 		"""
+		if not isinstance(matrix, MatrixBinary):
+			raise TypeError(f"Unsupported type of argument :{type(matrix)} for addition'")
+
 		return self.dimM == matrix.dimM and self.matrixM == matrix.matrixM
 	
 	def __mul__(self, matrix: 'MatrixBinary') -> 'MatrixBinary':
@@ -94,7 +97,8 @@ class MatrixBinary(AMatrix):
 		>>> m * m2
 		100,111
 		 """
-		# wrong dimensions
+		if not isinstance(matrix, MatrixBinary):
+			raise TypeError(f"Unsupported type of argument :{type(matrix)} for addition'")
 		if matrix.dimM != self.dimN:
 			raise ValueError("Matrix must to be square, dimM equals to dimN")
 		
