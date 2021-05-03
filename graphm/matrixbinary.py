@@ -80,7 +80,7 @@ class MatrixBinary(AMatrix):
 		True
 		"""
 		if not isinstance(matrix, MatrixBinary):
-			raise TypeError(f"Unsupported type of argument :{type(matrix)} for addition'")
+			return False
 
 		return self.dimM == matrix.dimM and self.matrixM == matrix.matrixM
 	
