@@ -47,7 +47,7 @@ class MatrixBinary(AMatrix):
 		"""
 		super().__init__(**d)
 	
-	def __add__(self, matrix: 'MatrixBinary') -> 'MatrixBinary':
+	def __add__(self, matrix: object) -> 'MatrixBinary':
 		""" Return the result of a logical '|'  between values of instance and that passed in argument
 		
 		:param MatrixBinary matrix: matrix to be added to the instance
@@ -59,7 +59,8 @@ class MatrixBinary(AMatrix):
 		>>> m + m2
 		00001,00100,10011
 		 """
-		# wrong dimensions
+		if not isinstance(matrix, MatrixBinary):
+			raise TypeError(f"Unsupported type of argument :{type(matrix)} for addition'")
 		if matrix.dimM != self.dimM or matrix.dimN != self.dimN:
 			raise ValueError("Wrong dimensions between matrices")
 
