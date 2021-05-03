@@ -3,10 +3,37 @@
 """
 import graphm
 MatrixBinary = graphm.matrixbinary.MatrixBinary
+Graph = graphm.graph.Graph
+
+
+matrix1 = MatrixBinary(boolean=['010100','000100','010010','000001','001100','000000'])
+matrix2 = matrix1.copy()
+mp = matrix1 * matrix1
+"""
+g = Graph(binary=m)
+g.draw("files/bianry-scalar-product.svg", ext='svg')
 
 """
-generate random matrice
+#matrixM = [20, 4, 18, 1, 12, 0]
+#matrixN = [0, 40, 2, 50, 8, 4]
+
+matrixM = [0]*matrix1.dimM
+for m in range(matrix1.dimM):
+	line = [('0' if (matrix1.matrixM[m] & matrix2.matrixN[n]) == 0 else '1') for n in range(matrix2.dimN)]
+	matrixM[m] = int('0b' + ''.join(line), 2)
+#return MatrixBinary(matrix=(matrixM, matrix2.dimN))
+
+matrixN = [0]*matrix2.dimN
+for n in range(matrix2.dimN):
+	line = [('0' if (matrix2.matrixN[n] & matrix1.matrixM[m]) == 0 else '1') for m in range(matrix1.dimM)]
+	matrixN[n] = int('0b' + ''.join(line), 2)
+#return MatrixBinary(matrix=(matrixM, matrix2.dimN))
+
+print('gaz')
+
+
 """
+generate random matrix
 import random
 
 coef_max = 1000
@@ -16,6 +43,7 @@ m = [[1 if random.randrange(coef_max) < coef else 0 for i in range(dim)] for _ i
 m1 = [i for l in m for i in l if i == 1]
 lm1 = len(m1)
 dim2 = dim*dim
+"""
 
 
 """

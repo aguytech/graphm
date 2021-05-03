@@ -1,3 +1,8 @@
+import datetime
+import graphm
+MatrixBinary = graphm.matrixbinary.MatrixBinary
+MatrixBoolean = graphm.matrixboolean.MatrixBoolean
+Factor = graphm.factor.Factor
 
 """
 	PERFORMANCE MATRIX_BOOLEAN
@@ -18,11 +23,81 @@ print(t2 - t1)
 """
 
 """
-	PERFORMANCE MATRIX_BINARY
+	factor & matrixbinary
+"""	
+def matrix_product(matrix, expo):
+	mr = matrix.copy()
+	for _ in range(1, f):
+		mr *= matrix
+	return mr
+
+s = 200
+print('exponent, operations, product, factor')
+for f in range(100, 1100, 100):
+	#print('exponent:', f)
+	m = MatrixBinary(random=(s,s))
+	mu = MatrixBinary(unity=s)
+	mi = m + mu
+	
+	#print('-------------- factor')
+	factor = Factor(f)
+	t1 = datetime.datetime.now()
+	result, count = factor.calculate(mi)
+	t2 = datetime.datetime.now()
+	#print('operations:', count)
+	#print('time:', t2 - t1)
+	tf = t2 - t1
+	
+	#print('-------------- product')
+	t1 = datetime.datetime.now()
+	mr = matrix_product(mi, f)
+	t2 = datetime.datetime.now()
+	tp = t2 -t1
+	#print('time:', t2 - t1)
+	print(f, count, tp, tf, sep=',')
+	#print()
+print('end')
+
+
 """
-import graphm.matrixbinary
-import datetime
-MatrixBinary = graphm.matrixbinary.MatrixBinary
+	matrixbinary
+	
+import functools
+for s in range(20,320,20):
+	dimM = s
+	dimN = s
+	matrix1 = MatrixBinary(random=(dimM,dimN))
+	matrix2 = MatrixBinary(random=(dimM,dimN))
+	# matrix1 = MatrixBoolean(random=(dimM,dimN))
+	# matrix2 = MatrixBoolean(random=(dimM,dimN))
+	t1 = datetime.datetime.now()
+	for _ in range(s):
+		# matrix = [[0 for _ in range(matrix1.dimN)] for _ in range(matrix1.dimM)]
+		#	for m in range(matrix1.dimM):
+		# 		for n in range(matrix2.dimN):
+		# 			l = (matrix1.get_value(m, i) & matrix2.get_value(i, n) for i in range(matrix1.dimN))
+		# 			# with functools package
+		# 			matrix[m][n] = functools.reduce(lambda x, y: x | y, l)
+
+		matrixM = [0]*matrix1.dimM
+		for m in range(matrix1.dimM):
+			line = [('0' if (matrix1.matrixM[m] & matrix2.matrixN[n]) == 0 else '1') for n in range(matrix2.dimN)]
+			matrixM[m] = int('0b' + ''.join(line), 2)
+		# matrixN = [0]*matrix2.dimN
+		# for n in range(matrix2.dimN):
+		# 	line = [('0' if (matrix2.matrixN[n] & matrix1.matrixM[m]) == 0 else '1') for m in range(matrix1.dimM)]
+		# 	matrixN[n] = int('0b' + ''.join(line), 2)
+	
+		matrix = [MatrixBinary.get_int2str(m, dimN) for m in matrixM]
+		matrixN = [int('0b' + ''.join(line[n] for line in matrix), 2) for n in range(dimN)]
+
+	t2 = datetime.datetime.now()
+	print(s, ':', t2 - t1)
+"""
+
+
+"""
+	multiplication
 
 n = 1000
 loop = 10
@@ -36,6 +111,7 @@ for i in range(1, loop):
 t2 = datetime.datetime.now()
 print(m)
 print(t2 - t1)
+"""
 
 """
 	PERFORMANCE MATRIX_BINARY
