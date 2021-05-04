@@ -10,13 +10,13 @@ class Factor(object):
 	classdocs
 	'''
 
-	def __init__(self, number: int):
+	def __init__(self, number: int, optimize: str=''):
 		'''
 		Constructor
 		'''
-		self.number = number
+		self.set_number(number, optimize)
 		self.real = True
-		self.coefficients = Factor.get_exponents(number)
+		self.coefficients = Factor.get_exponents(self.number)
 		self.elementaries = Factor.get_elementaries(self.coefficients, real=self.real)
 		self.factorization, self.count = Factor.get_factorization(self.elementaries, real=self.real)
 		
@@ -31,18 +31,6 @@ class Factor(object):
 			string = string.replace(s, r)
 		string = string[1:-1] if string[0] == '(' else string
 		return string
-		
-	# TODO: wrong string replace
-	def str_factor(self):
-		string = str(self.factorization)
-		d = {	': ': '*', ',': ' *', '[': '(', 	']': ')', '{': '', '}': ''}
-		for s, r in d.items():
-			string = string.replace(s, r)
-		indexes = list(set.union(*self.elementaries))
-		indexes.sort(reverse=True)
-		for index in indexes:
-			string = string.replace(str(index), str(2**index))
-		return string.strip('()')
 		
 	def operations(self):
 		def set_bases(max_factor: int):
@@ -262,5 +250,41 @@ class Factor(object):
 		n.reverse()
 		p = {2**i for i,n in enumerate(n) if n =='1'}
 		return p if p else {0}
+
+	def set_number(self, number: int, optimize: str):
+		def hard(number):
+			return int('1' + '0' * (number.bit_length()), 2)
+		
+		def soft(number: int, number2: int) -> int:
+			if number2[1:2] == '1':
+				number = hard(number)
+			else:
+				index = number2.find('1', 1)
+				number = number2[0:index-  1] + '1'  + '0'*(len(number2) - index)
+				number = int('0b' + number, 2)
+			return number
+				
+		if number and optimize and number.bit_length() > 1:
+			number2 = bin(number)[2:]
+			if number2.count('1') > 1:
+				if optimize == 'hard':
+					number = hard(number)
+				elif optimize == 'soft':
+					number = soft(number, number2)
+			
+		self.number = number
+
+	# TODO: wrong string replace
+	def str_factor(self):
+		string = str(self.factorization)
+		d = {	': ': '*', ',': ' *', '[': '(', 	']': ')', '{': '', '}': ''}
+		for s, r in d.items():
+			string = string.replace(s, r)
+		indexes = list(set.union(*self.elementaries))
+		indexes.sort(reverse=True)
+		for index in indexes:
+			string = string.replace(str(index), str(2**index))
+		return string.strip('()')
+		
 
 		

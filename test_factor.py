@@ -5,6 +5,21 @@ Factor =  graphm.factor.Factor
 MatrixBinary =  graphm.matrixbinary.MatrixBinary
 
 """
+	tests operations
+"""
+m = 1000
+print('exponent, bit_length, bit_length_h, bit_length_s, exponent, operations, operations_h, operations_s, exponent, binary, binary_h, binary_s')
+for i in range(2, m):
+	f = Factor(i)
+	f_h = Factor(i, optimize='hard')
+	f_s = Factor(i, optimize='soft')
+	ops = f.operations()
+	ops_h = f_h.operations()
+	ops_s = f_s.operations()
+	binary = bin(i)[2:]
+	print(i, f.number.bit_length(), f_h.number.bit_length(), f_s.number.bit_length(), i, ops, ops_h, ops_s, i, binary, bin(i)[2:], bin(f.number)[2:], sep=',')
+
+"""
 	tests on matrix
 
 def matrix_product(matrix, expo):

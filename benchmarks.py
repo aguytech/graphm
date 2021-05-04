@@ -23,16 +23,32 @@ print(t2 - t1)
 """
 
 """
+	factor operations far far away
+"""
+m = 1000
+print('exponent, operations, operations_h, operations_s')
+for i in range(1000, 40200, 200):
+	#print('-------------- factor')
+	f = Factor(i)
+	f_h = Factor(i, optimize='hard')
+	f_s = Factor(i, optimize='soft')
+	ops = f.operations()
+	ops_h = f_h.operations()
+	ops_s = f_s.operations()
+	print(i, ops, ops_h, ops_s, sep=',')
+	#print()
+print('end')
+
+"""
 	factor & matrixbinary
-"""	
 def matrix_product(matrix, expo):
 	mr = matrix.copy()
 	for _ in range(1, f):
 		mr *= matrix
 	return mr
 
-s = 200
-print('exponent, operations, product, factor')
+s = 20
+print('exponent, operations, operations2, product, factor')
 for f in range(100, 1100, 100):
 	#print('exponent:', f)
 	m = MatrixBinary(random=(s,s))
@@ -41,6 +57,7 @@ for f in range(100, 1100, 100):
 	
 	#print('-------------- factor')
 	factor = Factor(f)
+	ops = factor.operations()
 	t1 = datetime.datetime.now()
 	result, count = factor.calculate(mi)
 	t2 = datetime.datetime.now()
@@ -50,13 +67,14 @@ for f in range(100, 1100, 100):
 	
 	#print('-------------- product')
 	t1 = datetime.datetime.now()
-	mr = matrix_product(mi, f)
+	#mr = matrix_product(mi, f)
 	t2 = datetime.datetime.now()
 	tp = t2 -t1
 	#print('time:', t2 - t1)
-	print(f, count, tp, tf, sep=',')
+	print(f, count, ops, tp, tf, sep=',')
 	#print()
 print('end')
+"""
 
 
 """
