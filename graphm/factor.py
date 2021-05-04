@@ -44,6 +44,61 @@ class Factor(object):
 			string = string.replace(str(index), str(2**index))
 		return string.strip('()')
 		
+	def operations(self):
+		def set_bases(max_factor: int):
+			indexes = [2**i for i in range(1, max_factor.bit_length())]
+			bases = {1: 1}
+			for i in range(len(indexes)):
+				bases[indexes[i]] = 1
+			return bases
+		
+		def add_bases(factor):
+			factor_loop = max(bases.keys())
+			loop = factor.bit_length() - factor_loop.bit_length()
+			for _ in range(loop):
+				factor_loop *= 2
+				bases[factor_loop] = 1
+
+		def calc(factor, factorsof):
+			factor_final = factor * factorsof
+			if factor_final not in bases.keys():
+				add_bases(factor_final)
+			return bases[factor_final]
+		
+		def set_content(result, content, ops):
+			if content != 0:
+				content = content + result
+				ops += 1
+			else:
+				content = result
+			return (content, ops)
+			
+		def calcrec(factorization, factor=1, ops=0):
+			content = 0
+
+			for element in factorization:
+				if isinstance(element, dict):
+					factor_loop, factors = element.popitem()
+					if isinstance(factors, int):
+						result = calc(factor_loop, factors)
+					else:
+						result, ops = calcrec(factors, factor * factor_loop, ops)
+					content, ops = set_content(result, content, ops)
+				else:
+					result = calc(factor, element)
+					content, ops = set_content(result, content, ops)
+			return (content, ops)
+		
+		ops = 0
+		if self.factorization:
+			max_factor = max({i for l in self.elementaries for i in l})
+			bases = set_bases(max_factor)
+			factorization = deepcopy(self.factorization)
+			_, ops = calcrec(factorization)
+			# -1 for the first element in bases
+			ops += len(bases) - 1
+		return (ops)
+
 	def calculate(self, obj: object):
 		def set_bases(obj: object, max_factor: int):
 			indexes = [2**i for i in range(1, max_factor.bit_length())]
@@ -69,15 +124,15 @@ class Factor(object):
 				add_bases(factor_final)
 			return bases[factor_final]
 		
-		def set_content(result, content, op):
+		def set_content(result, content, ops):
 			if content != 1:
 				content = content * result
-				op += 1
+				ops += 1
 			else:
 				content = result
-			return (content, op)
+			return (content, ops)
 			
-		def calcrec(factorization, factor=1, op=0):
+		def calcrec(factorization, factor=1, ops=0):
 			content = 1
 			
 			for element in factorization:
@@ -86,28 +141,29 @@ class Factor(object):
 					if isinstance(factors, int):
 						result = calc(factor_loop, factors)
 					else:
-						result, op = calcrec(factors, factor * factor_loop, op)
-					content, op = set_content(result, content, op)
+						result, ops = calcrec(factors, factor * factor_loop, ops)
+					content, ops = set_content(result, content, ops)
 				else:
 					result = calc(factor, element)
-					content, op = set_content(result, content, op)
-			return (content, op)
+					content, ops = set_content(result, content, ops)
+			return (content, ops)
 		
 		if not hasattr(obj, '__mul__'):
 			raise ValueError("The given object has no method for multiplication")
 		
-		op = 0
+		ops = 0
 		if obj and self.factorization:
 			max_factor = max({i for l in self.elementaries for i in l})
 			bases = set_bases(obj, max_factor)
 			factorization = deepcopy(self.factorization)
-			result, op = calcrec(factorization)
-			op += len(bases) - 1
+			result, ops = calcrec(factorization)
+			# -1 for the first element in bases
+			ops += len(bases) - 1
 		elif obj and not self.factorization:
 			result = obj
 		else:
 			result = None
-		return (result, op)
+		return (result, ops)
 
 	@staticmethod
 	def get_bases(number: int) -> list:
