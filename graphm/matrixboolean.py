@@ -23,14 +23,14 @@ class MatrixBoolean(AMatrix):
 		* **matrix** get a boolean matrix
 		* **empty** get 2 dimensions of an empty matrix
 		* **random** get 2 dimensions of randomized matrix
-		* **unity** get the dimension of unity matrix
+		* **unit** get the dimension of unit matrix
 
 		:param dict \*\*d: options to specify the type of matrix
 		
 			:empty: (tuple) dimensions for matrix (dimM: int, dimN: int)
 			:matrix: (list) matrix in [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...)
 			:random: (tuple) dimensions for matrix (dimM: int, dimN: int)
-			:unity: (int) dimensions for square matrix
+			:unit: (int) dimensions for square matrix
 			
 		For default options see :class:`AMatrix.__init__`
 			
@@ -51,7 +51,8 @@ class MatrixBoolean(AMatrix):
 		>>> m + m2
 		00001,00100,10011
 		"""
-		# wrong dimensions
+		if not isinstance(matrix, MatrixBoolean):
+			raise ValueError("argument must be an instance of class 'MatrixBoolean")
 		if matrix.dimM != self.dimM or matrix.dimN != self.dimN:
 			raise ValueError("Matrix have wrong dimensions")
 		
@@ -73,10 +74,8 @@ class MatrixBoolean(AMatrix):
 		>>> m == m2
 		True
 		"""
-		if not isinstance(matrix, MatrixBoolean):
-			raise ValueError("argument must be an instance of class 'MatrixBoolean")
-		
-		if self.dimM != matrix.dimM or self.dimN != matrix.dimN or self.matrix != matrix.matrix:
+		if not isinstance(matrix, MatrixBoolean) or \
+			self.dimM != matrix.dimM or self.dimN != matrix.dimN or self.matrix != matrix.matrix:
 			return False
 		return True
 	
@@ -226,12 +225,12 @@ class MatrixBoolean(AMatrix):
 		if self.isreflexive:
 			self.matrix = [[self.matrix[m][n] if m != n else 1 for n in range(dimN)] for m in range(dimM)]
 		
-	def set_from_unity(self, unity: int) -> None:
-		""" Set an unity matrix: an empty square matrix with diagonal to 1
+	def set_from_unit(self, unit: int) -> None:
+		""" Set an unit matrix: an empty square matrix with diagonal to 1
 
-		:param int unity: number of rows and columns
+		:param int unit: number of rows and columns
 		
-		>>> m = MatrixBoolean(unity=4)
+		>>> m = MatrixBoolean(unit=4)
 		>>> print(m)
 		dim 4,4
 		1000
@@ -239,7 +238,7 @@ class MatrixBoolean(AMatrix):
 		0010
 		0001
 		"""
-		dim = unity
+		dim = unit
 		self._set_dim(dim, dim)
 		self.matrix = [[0 if i != j else 1 for i in range(dim) ] for j in range(dim)]
 	
