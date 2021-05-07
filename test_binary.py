@@ -34,6 +34,7 @@ print('gaz')
 
 """
 generate random matrix
+"""
 import random
 
 coef_max = 1000
@@ -43,9 +44,9 @@ m = [[1 if random.randrange(coef_max) < coef else 0 for i in range(dim)] for _ i
 m1 = [i for l in m for i in l if i == 1]
 lm1 = len(m1)
 dim2 = dim*dim
+
+
 """
-
-
 """
 m1 = MatrixBinary(matrix=([1, 1, 0, 4, 10, 8], 6))
 print(m1.str())
@@ -60,8 +61,8 @@ print('random', m2)
 m = m1 + m2
 print('m1 + m2', m)
 
-m1 = MatrixBinary(unity=4)
-print('unity - str', m1.str())
+m1 = MatrixBinary(unit=4)
+print('unit - str', m1.str())
 
 me = MatrixBinary(empty=(6,4))
 me2 = MatrixBinary(empty=(6,4))
@@ -70,7 +71,6 @@ print('me2', id(me2))
 print('m == me', m == me)
 print('me == me2', me == me2)
 print('me is me2', me is me2)
-"""
 
 """
 m = MatrixBinary(matrix=([1, 5, 0, 4, 10, 8, 14], 7))

@@ -8,7 +8,12 @@
 #from graphm.pert import Pert
 import graphm.graph
 import graphm.matrixboolean
+import graphm.matrixbinary
 import graphm.factor
+Graph = graphm.graph.Graph
+MatrixBoolean = graphm.matrixboolean.MatrixBoolean
+MatrixBinary = graphm.matrixbinary.MatrixBinary
+Factor = graphm.factor.Factor
 #import graphm.matrixbinary
 
 #print("chargement du package", __name__)

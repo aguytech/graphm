@@ -4,9 +4,10 @@ Created on Apr 26, 2021
 @author: salem Aguemoun
 '''
 import random as rnd
-from .amatrix import AMatrix
+import graphm.factor
+Factor = graphm.factor.Factor
 
-class MatrixBinary(AMatrix):
+class MatrixBinary(graphm.amatrix.AMatrix):
 	""" Manage a boolean matrix with binary lines
 	
 	Increase performance of boolean matrices
@@ -17,8 +18,8 @@ class MatrixBinary(AMatrix):
 	
 	.. CAUTION:: Instance variables
 	
-	:var list/tuple matrixM: contents binary integers for rows
-	:var list/tuple matrixN: contents binary integers for columns
+	:var list matrixM: contents binary integers for rows
+	:var list matrixN: contents binary integers for columns
 	"""
 
 	def __init__(self, **d) -> 'MatrixBinary':
@@ -28,7 +29,7 @@ class MatrixBinary(AMatrix):
 		* **boolean** get a boolean matrix
 		* **empty** get 2 dimensions of an empty matrix
 		* **random** get 2 dimensions of randomized matrix
-		* **unity** get the dimension of unity matrix
+		* **unit** get the dimension of unit matrix
 
 		:param dict \*\*d: options to specify the type of matrix
 		
@@ -38,7 +39,7 @@ class MatrixBinary(AMatrix):
 			:boolean: (list) matrix in [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...)
 			:empty: (tuple) dimensions for matrix (dimM: int, dimN: int)
 			:random: (tuple) dimensions for matrix (dimM: int, dimN: int)
-			:unity: (int) dimensions for square matrix
+			:unit: (int) dimensions for square matrix
 			
 		For default options see :class:`AMatrix.__init__`
 			
@@ -139,6 +140,19 @@ class MatrixBinary(AMatrix):
 		return f"dim {self.dimM},{self.dimN}" +"\n" \
 			+ "\n".join(MatrixBinary.get_int2str(m, self.dimN) for m in self.matrixM)
 
+	@staticmethod
+	def add_unit(matrix : 'MatrixBinary') -> 'MatrixBinary':
+		""" Return matrix added of unit matrix
+		:param MatrixBinary matrix: 
+		
+		:return: matrix added of unit matrix
+		:rtype: MatrixBinary
+		"""
+		unit = [2**i for i in range(matrix.dimM-1, -1, -1)]
+		matrix.matrixM = [matrix.matrixM[i] | unit[i] for i in range(matrix.dimM)]
+		matrix.matrixN = [matrix.matrixN[i] | unit[i] for i in range(matrix.dimN)]
+		return matrix
+
 	def copy(self) -> 'MatrixBinary':
 		""" Return a copy of matrix
 		
@@ -182,266 +196,214 @@ class MatrixBinary(AMatrix):
 		return [int('0b' + ''.join(l[n] for l in line), 2) for n in range(dimN)]
 		#return [int('0b' + ''.join(l[n] for l in matrix), 2) for n in range(dim)]
 	
-	def get_closure(self) -> 'MatrixBinary':
-		""" Return the transitive closure of this matrix
+	def get_closure_reflective_count(self, add=True, full=False) -> tuple:
+		""" Return the transitive closure of itself in a new matrix
+		using an internal optimized product
 		
-		The transitive closure stop when closure(d) = closure(d-1)
-		Deep of closure is defined by this equality
+		If argument 'full' is False, the transitive closure stop when closure(d) = closure(d-1)
+		
+		:param bool add: if True adds unit matrix otherwise no
+			
+			default = True
+			
+		:param bool full: if True calculates all ranks, otherwise only until a stabilized closure
+			
+			default = False
+		
+		:return: The transitive closure with a deep of stabilized closure and deep
+		:rtype: tuple(MatrixBinary, int)
+		
+		>>> m = MatrixBinary(boolean=['00001', '00100', '00010', '01010', '00010'])
+		>>> closure, count = m.get_closure_reflective_count()
+		>>> closure
+		11111,01110,01110,01110,01111
+		
+		>>> m = MatrixBinary(boolean=['00001', '00100', '00010', '01010', '00010'])
+		>>> closure = m.get_closure_reflective(add=False)
+		>>> closure
+		01110,01110,01110,01110,01110
+		"""
+		if self.dimM != self.dimN:
+			raise ValueError("Matrix have wrong dimensions")
+		
+		if add:
+			matrixM = MatrixBinary.get_unit_added(self.matrixM, self.dimM)
+			matrixN = MatrixBinary.get_unit_added(self.matrixN, self.dimN)
+		else:
+			matrixM, matrixN = self.matrixM, self.matrixN
+		matrixM_tmp = matrixM[:]
+
+		deep = 1
+		# loops on n-1
+		for _ in range(1, self.dimM):
+			# mul
+			for m in range(self.dimM):
+				matrixM[m] = int('0b' + ''.join([('0' if (matrixM[m] & matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
+			if not full:
+				if matrixM == matrixM_tmp:
+					break
+			matrixM_tmp = matrixM[:]
+			deep += 1
+		return (MatrixBinary(matrix=(matrixM, self.dimN)), deep)
+
+	def get_closure_reflective(self, add=True, full=False) -> 'MatrixBinary':
+		""" Return the transitive closure of itself in a new matrix
+		using an internal optimized product
+		
+		If argument 'full' is False, the transitive closure stop when closure(d) = closure(d-1)
+		
+		:param bool add: if True adds unit matrix otherwise no
+			
+			default = True
+			
+		:param bool full: if True calculates all ranks, otherwise only until a stabilized closure
+			
+			default = False
 		
 		:return: The transitive closure with a deep of stabilized closure
 		:rtype: MatrixBinary
 		
 		>>> m = MatrixBinary(boolean=['00001', '00100', '00010', '01010', '00010'])
-		>>> m.get_closure()
+		>>> m.get_closure_reflective()
 		11111,01110,01110,01110,01111
 		"""
-		# wrong dimensions
 		if self.dimM != self.dimN:
 			raise ValueError("Matrix have wrong dimensions")
 		
-		# get matrix + unity matrix
-		unity = [2**i for i in range(self.dimM-1, -1, -1)]
-		matrixM = [self.matrixM[i] | unity[i] for i in range(self.dimM)]
-		matrixN = [self.matrixN[i] | unity[i] for i in range(self.dimN)]
+		if add:
+			matrixM = MatrixBinary.get_unit_added(self.matrixM, self.dimM)
+			matrixN = MatrixBinary.get_unit_added(self.matrixN, self.dimN)
+		else:
+			matrixM, matrixN = self.matrixM, self.matrixN
 		matrixM_tmp = matrixM[:]
 		
 		# loops on n-1
-		for i in range(1, self.dimM):
+		for _ in range(1, self.dimM):
 			# mul
 			for m in range(self.dimM):
 				matrixM[m] = int('0b' + ''.join([('0' if (matrixM[m] & matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
-			if matrixM == matrixM_tmp:
-				break
+			if not full:
+				if matrixM == matrixM_tmp:
+					break
 			matrixM_tmp = matrixM[:]
-		# result
-		#return (MatrixBinary(matrix=(matrixM, self.dimN)), l)
 		return MatrixBinary(matrix=(matrixM, self.dimN))
 
-	def get_closure_full(self) -> 'MatrixBinary':
-		""" Return the transitive closure of this matrix
+	def get_closure_reflective_optimized(self, optimize='soft', add=True) -> 'MatrixBinary':
+		""" Return the transitive closure of itself in a new matrix
+		using class :class:`Factor` to optimize products
 		
-		The transitive closure stop when deep  = dimension - 1
-		deep = self.dim - 1
-		
-		.. NOTE:: This method is used for the benchmark
+		If argument 'full' is False, the transitive closure stop when closure(d) = closure(d-1)
 		
 		:return: The transitive closure with a deep of stabilized closure
 		:rtype: MatrixBinary
 		
 		>>> m = MatrixBinary(boolean=['00001', '00100', '00010', '01010', '00010'])
-		>>> m.get_closure_full()
+		>>> closure, count = m.get_closure_reflective_optimized()
+		>>> closure
 		11111,01110,01110,01110,01111
 		"""
-		# wrong dimensions
 		if self.dimM != self.dimN:
 			raise ValueError("Matrix have wrong dimensions")
 		
-		# get matrix + unity matrix
-		unity = [2**i for i in range(self.dimM-1, -1, -1)]
-		matrixM = [self.matrixM[i] | unity[i] for i in range(self.dimM)]
-		matrixN = [self.matrixN[i] | unity[i] for i in range(self.dimN)]
+		if add:
+			matrix = self.copy()
+			matrix.matrixM = MatrixBinary.get_unit_added(self.matrixM, self.dimM)
+			matrix.matrixN = MatrixBinary.get_unit_added(self.matrixN, self.dimN)
+		else:
+			matrix = self
 		
-		# loops on n-1
-		for i in range(1, self.dimM):
-			# mul
-			for m in range(self.dimM):
-				matrixM[m] = int('0b' + ''.join([('0' if (matrixM[m] & matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
-		# result
-		return MatrixBinary(matrix=(matrixM, self.dimN))
+		factor = Factor(self.dimM - 1, optimize=optimize)
+		return factor.power(matrix)
 
-	def get_closure_matrix_full(self) -> list:
-		""" Return the transitive closure of this matrix and intermediate adjacency matrices
+	def get_closure_matrix(self, full=False) -> tuple:
+		""" Return the transitive closure of itself and intermediate adjacency matrices
+		using an internal optimized product
 		
-		.. NOTE:: Deep of closure is equal to matrix dimension  - 1
+		If argument 'full' is False, the transitive closure stop when closure(d) = closure(d-1)
 		
-		:return: closure of matrix itself and intermediate adjacency matrices
-		:rtype: list
+		:param bool full: if True calculates all ranks, otherwise only until a stabilized closure
 			
-			:index: (int) deep: deep of closure
-			:values: (:class:`MatrixBinary`) matrix: adjacency matrices
+			default = False
+		
+		:return: The transitive closure with intermediate adjacency matrices
+		:rtype: tuple with list of MatrixBinary & closure in MatrixBinary
+		
+		>>> m = MatrixBinary(boolean=['00001', '00100', '00010', '01010', '00010'])
+		>>> closure, matrices = m.get_closure_matrix()
+		>>> closure
+		01111,01110,01110,01110,01110
+		
+		>>> m = MatrixBinary(boolean=['10001', '01100', '00110', '01010', '00011'])
+		>>> closure, matrices = m.get_closure_matrix()
+		>>> closure
+		11111,01110,01110,01110,01111
+		"""
+		if self.dimM != self.dimN:
+			raise ValueError("Matrix have wrong dimensions")
+		
+		matrix = self.copy()
+		matrices = [matrix]
+		matrixM = matrix.matrixM
+		closureM = matrix.matrixM[:]
+		closureM_tmp = matrix.matrixM[:]
+		
+		# loops on n-1
+		for i in range(1, self.dimM):
+			# mul
+			for m in range(self.dimM):
+				matrixM[m] = int('0b' + ''.join([('0' if (matrices[i-1].matrixM[m] & self.matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
+			matrices.append(MatrixBinary(matrix=(matrixM, self.dimN)))
+			closureM = [closureM[m] | matrixM[m] for m in range(self.dimM)]
+			if not full:
+				if closureM == closureM_tmp:
+					break
+			closureM_tmp = closureM
+						
+		return (MatrixBinary(matrix=(closureM, self.dimN)), matrices)
+
+	def get_closure_slides(self,  full=False) -> list:
+		""" Return the transitive closure of itself and intermediate adjacency matrices matrixM
+		using an internal optimized product
+		
+		If argument 'full' is False, the transitive closure stop when closure(d) = closure(d-1)
+		
+		:param bool full: if True calculates all ranks, otherwise only until a stabilized closure
 			
-			* [0]: transitive closure
-			* [..]: adjacency matrices of intermediate deeps. Slides contains :class:`MatrixBinary`
+			default = False
 		
-		>>> m = MatrixBinary(boolean=['0000', '0010', '1001', '0101'])
-		>>> m.get_closure_matrix_full()
-		[0000,0010,1001,0101, 0000,1001,0101,0111, 0000,0101,0111,1111]
+		:return: The transitive closure with intermediate adjacency matrices matrixM
+		:rtype: tuple with list of matrixM & closure in MatrixBinary
+		
+		>>> m = MatrixBinary(boolean=['00001', '00100', '00010', '01010', '00010'])
+		>>> slides, closure = m.get_closure_slides()
+		>>> closure
+		[[14, 14, 14, 14, 14], [2, 2, 10, 14, 10], [10, 10, 14, 14, 14], [14, 14, 14, 14, 14]]
 		"""
-		# wrong dimensions
 		if self.dimM != self.dimN:
 			raise ValueError("Matrix have wrong dimensions")
 		
-		m = MatrixBinary(matrix=(self.matrixM, self.dimN))
-		l = [m]
-		matrixM = list(m.matrixM)
-
+		matrix = self.copy()
+		result = [matrix.matrixM]
+		matrixM = matrix.matrixM
+		closureM = matrix.matrixM[:]
+		closureM_tmp = matrix.matrixM[:]
+		
 		# loops on n-1
 		for i in range(1, self.dimM):
 			# mul
 			for m in range(self.dimM):
-				matrixM[m] = int('0b' + ''.join([('0' if (l[i-2].matrixM[m] & self.matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
-			l.append(MatrixBinary(matrix=(matrixM, self.dimN)))
-		
-		# result
-		return l
-
-	def get_closure_matrix_dict(self) -> dict:
-		""" Return the transitive closure of this matrix and intermediate adjacency matrices
-		
-		Deep of closure is defined by equality of matrice(d) = matrice(d-1)
-		
-		:return: closure of matrix itself and intermediate adjacency matrices
-		:rtype: dict
-		
-			:index: (int) deep: deep
-			:values: (:class:`MatrixBinary`) matrix: adjacency matrices 
-		
-			* [0]: transitive closure
-			* [..]: adjacency matrices of intermediate deeps. Slides contains :class:`MatrixBinary`
-		
-		>>> m = MatrixBinary(boolean=['0000', '0010', '1001', '0101'])
-		>>> m.get_closure_matrix_dict()
-		{1: 0000,0010,1001,0101, 2: 0000,1001,0101,0111, 3: 0000,0101,0111,1111}
-		"""
-		# wrong dimensions
-		if self.dimM != self.dimN:
-			raise ValueError("Matrix have wrong dimensions")
-		
-		d = {1: MatrixBinary(matrix=(self.matrixM, self.dimN))}
-		matrixM = list(d[1].matrixM)
-
-		# loops on n-1
-		for i in range(1, self.dimM):
-			# mul
-			for m in range(self.dimM):
-				matrixM[m] = int('0b' + ''.join([('0' if (d[i-1].matrixM[m] & self.matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
-			d[i] = MatrixBinary(matrix=(matrixM, self.dimN))
-		
-		# result
-		return d
-
-	def get_closure_slides(self) -> list:
-		""" Return the transitive closure of this matrix with intermediate adjacency matricesM
-		
-		Deep of closure is defined by equality of matrice(d) = matrice(d-1)
-		
-		:return: closure of matrix itself and intermediate adjacency matrices
-		:rtype: list
-		
-			:index: (int) deep: deep
-			:values: (list) matrixM: adjacency matrices with only rows
-		
-			* [0]: transitive closure
-			* [..]: adjacency matrices of intermediate deeps. Slides contains rows with only matrixM
-		
-		>>> m = MatrixBinary(boolean=['0000', '0010', '1001', '0101'])
-		>>> m.get_closure_slides()
-		[[0, 15, 15, 15], [0, 2, 9, 5], [0, 9, 5, 7], [0, 5, 7, 15]]
-		"""
-		# wrong dimensions
-		if self.dimM != self.dimN:
-			raise ValueError("Matrix have wrong dimensions")
-		
-		matrixM = list(self.matrixM)
-		closure = matrixM[:]
-		closure_tmp = matrixM[:]
-		l=[[], matrixM[:]]
-
-		# loops on n-1
-		for i in range(1, self.dimM):
-			# mul
-			for m in range(self.dimM):
-				line = [('0' if (l[i-1][m] & self.matrixN[n]) == 0 else '1') for n in range(self.dimN)]
-				matrixM[m] = int('0b' + ''.join(line), 2)
-
-			closure = [closure[m] | matrixM[m] for m in range(self.dimM)]
-			if closure != closure_tmp:
-				closure_tmp = closure[:]
-				l.append(matrixM[:])
-			else:
-				break
-
-		l[0] = closure
-		# result
-		return (l)
-
-	def get_closure_slides_dict(self) -> dict:
-		""" Return the transitive closure of this matrix and intermediate adjacency matricesM
-		
-		Deep of closure is defined by equality of matrice(d) = matrice(d-1)
-		
-		:return: closure of matrix itself and intermediate adjacency matrices
-		:rtype: dict
-		
-			:index: (int) deep: deep
-			:values: (list) matrixM: adjacency matrices with only rows
-		
-			* [0]: transitive closure
-			* [..]: adjacency matrices of intermediate deeps. Slides contains rows with only matrixM
-		
-		>>> m = MatrixBinary(boolean=['0000', '0010', '1001', '0101'])
-		>>> m.get_closure_slides()
-		[[0, 15, 15, 15], [0, 2, 9, 5], [0, 9, 5, 7], [0, 5, 7, 15]]
-		"""
-		# wrong dimensions
-		if self.dimM != self.dimN:
-			raise ValueError("Matrix have wrong dimensions")
-		
-		d = {1: self.matrixM[:]}
-		matrixM = list(self.matrixM)
-
-		# loops on n-1
-		for i in range(1, self.dimM):
-			# mul
-			for m in range(self.dimM):
-				matrixM[m] = int('0b' + ''.join([('0' if (d[i-1][m] & self.matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
+				#line = [('0' if (result[i-1][m] & self.matrixN[n]) == 0 else '1') for n in range(self.dimN)]
+				#matrixM[m] = int('0b' + ''.join(line), 2)
+				matrixM[m] = int('0b' + ''.join([('0' if (result[i-1][m] & self.matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
 			
-			if matrixM != d[i-1]:
-				d[i] = matrixM[:]
-			else:
-				break
-		
-		# result
-		return d
-
-	def get_closure_slides_full(self) -> list:
-		""" Return the transitive closure of this matrix and intermediate adjacency matricesM
-			* first elements: transitive closure
-			* other elements: adjacency matrices of intermediate deeps. Slides contains rows with only matrixM
-		
-		.. NOTE:: Deep of closure is equal to matrix dimension  - 1
-		
-		:return: closure of matrix itself and intermediate adjacency matrices
-		:rtype: dict
-		
-			:index: (int) deep: deep
-			:values: (list) matrixM: adjacency matrices with only rows
-		
-		>>> m = MatrixBinary(boolean=['0000', '0010', '1001', '0101'])
-		>>> m.get_closure_slides_full()
-		[[0, 15, 15, 15], [0, 2, 9, 5], [0, 9, 5, 7], [0, 5, 7, 15]]
-		"""
-		# wrong dimensions
-		if self.dimM != self.dimN:
-			raise ValueError("Matrix have wrong dimensions")
-		
-		matrixM = list(self.matrixM)
-		closure = matrixM[:]
-		l=[[], matrixM[:]]
-
-		# loops on n-1
-		for i in range(1, self.dimM):
-			# mul
-			for m in range(self.dimM):
-				line = [('0' if (l[i-1][m] & self.matrixN[n]) == 0 else '1') for n in range(self.dimN)]
-				matrixM[m] = int('0b' + ''.join(line), 2)
-
-			closure = [closure[m] | matrixM[m] for m in range(self.dimM)]
-			l.append(matrixM[:])
-
-		l[0] = closure
-		# result
-		return (l)
+			closureM = [closureM[m] | matrixM[m] for m in range(self.dimM)]
+			if not full:
+				if closureM == closureM_tmp:
+					break
+			result.append(matrixM[:])
+			closureM_tmp = closureM
+						
+		return (closureM, result)
 
 	def get_connect(self) -> dict:
 		""" Return information about the full connectivity of this matrix 
@@ -467,10 +429,10 @@ class MatrixBinary(AMatrix):
 		if self.dimM != self.dimN:
 			raise ValueError("Matrix have wrong dimensions")
 		
-		# get matrix + unity matrix
-		unity = [2**i for i in range(self.dimM-1, -1, -1)]
-		matrixM = [self.matrixM[i] | unity[i] for i in range(self.dimM)]
-		matrixN = [self.matrixN[i] | unity[i] for i in range(self.dimN)]
+		# get matrix + unit matrix
+		unit = [2**i for i in range(self.dimM-1, -1, -1)]
+		matrixM = [self.matrixM[i] | unit[i] for i in range(self.dimM)]
+		matrixN = [self.matrixN[i] | unit[i] for i in range(self.dimN)]
 
 		deep = 1
 		maskInit = 2**self.dimM - 1
@@ -521,9 +483,9 @@ class MatrixBinary(AMatrix):
 		deep = 1
 		connect = False
 		mask = 2**(self.dimN - outM)
-		unity = [2**i for i in range(self.dimM-1, -1, -1)]
-		matrixM = [self.matrixM[i] | unity[i] for i in range(self.dimM)]
-		matrixN = [self.matrixN[i] | unity[i] for i in range(self.dimN)]
+		unit = [2**i for i in range(self.dimM-1, -1, -1)]
+		matrixM = [self.matrixM[i] | unit[i] for i in range(self.dimM)]
+		matrixN = [self.matrixN[i] | unit[i] for i in range(self.dimN)]
 		
 		#test
 		if (matrixM[inM] & mask) == mask:
@@ -577,6 +539,23 @@ class MatrixBinary(AMatrix):
 		"""
 		return int('0b' + line, 2)
 
+	def get_transpose(self) -> 'MatrixBinary':
+		""" Return the transpose of this matrix
+		Give the diagonal symmetry of matrix
+		
+		:return: the transpose of this matrix
+		:rtype: MatrixBinary
+
+		>>> m = MatrixBinary(boolean=[[0, 0, 0, 0, 1], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0]])
+		>>> m2 = m.get_transpose()
+		>>> m2
+		000,000,010,001,100
+		"""
+		matrix = MatrixBinary(empty=(self.dimN, self.dimM))
+		matrix.matrixM = self.matrixN[:]
+		matrix.matrixN = self.matrixM[:]
+		return matrix
+	
 	def matrixM2N(self) -> None:
 		""" set the transpose of the matrixM (list of rows) of itself
 		
@@ -591,6 +570,17 @@ class MatrixBinary(AMatrix):
 		matrix = [MatrixBinary.get_int2str(m, self.dimN) for m in self.matrixM]
 		self.matrixN = [int('0b' + ''.join(line[n] for line in matrix), 2) for n in range(self.dimN)]
 	
+	@staticmethod
+	def get_unit_added(matrixX: list, dimX: int) -> list:
+		""" Return respectively matrixX (M or N) added of unit matrix
+		
+		:param list matrixX: matrixM or matrixN
+		:return: matrixX (M or N) added of unit matrix
+		:rtype: list
+		"""
+		unit = [2**i for i in range(dimX - 1, -1, -1)]
+		return [matrixX[i] | unit[i] for i in range(dimX)]
+
 	def str(self):
 		""" Return a representation on 2 dimensions of 2 matrices.
 		the original one and its transposed
@@ -708,12 +698,12 @@ class MatrixBinary(AMatrix):
 		self.matrixM = [int('0b' + ''.join(line), 2) for line in matrix]
 		self.matrixM2N()
 
-	def set_from_unity(self, unity: int) -> None:
-		""" Set an unity matrix: an empty square matrix with diagonal to 1
+	def set_from_unit(self, unit: int) -> None:
+		""" Set an unit matrix: an empty square matrix with diagonal to 1
 
-		:param int unity: number of rows and columns
+		:param int unit: number of rows and columns
 		
-		>>> m = MatrixBinary(unity=4)
+		>>> m = MatrixBinary(unit=4)
 		>>> print(m)
 		dim 4,4
 		1000
@@ -724,27 +714,10 @@ class MatrixBinary(AMatrix):
 		#self.matrixM = [int('0b' + ''.join(('1' if i == j else '0') for i in range(dim)), 2) for j in range(dim)]
 		#self.matrixN = [int('0b' + ''.join(('1' if i == j else '0') for i in range(dim)), 2) for j in range(dim)]
 
-		dim = unity
+		dim = unit
 		matrix = (2**i for i in range(dim - 1, -1, -1))
 		self.matrixM = [i  for i in matrix]
 		self.matrixN = [i  for i in matrix]
 		self._set_dim(dim, dim)
 
-	def get_transpose(self) -> 'MatrixBinary':
-		""" Return the transpose of this matrix
-		Give the diagonal symmetry of matrix
-		
-		:return: the transpose of this matrix
-		:rtype: MatrixBinary
-
-		>>> m = MatrixBinary(boolean=[[0, 0, 0, 0, 1], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0]])
-		>>> m2 = m.get_transpose()
-		>>> m2
-		000,000,010,001,100
-		"""
-		matrix = MatrixBinary(empty=(self.dimN, self.dimM))
-		matrix.matrixM = self.matrixN[:]
-		matrix.matrixN = self.matrixM[:]
-		return matrix
-	
 	
