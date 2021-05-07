@@ -10,16 +10,19 @@ class Factor(object):
 	classdocs
 	'''
 
-	def __init__(self, number: int, optimize: str=''):
+	def __init__(self, exponent: int, optimize: str=''):
+		''' instantiate an object with the required exponent and a method of product optimization
+		
+		:param int exponent: initial exponent of product
+		:param str optimize: the method used to optimize the product: None, 'soft' or 'hard'
+		
+			default: None
 		'''
-		Constructor
-		'''
-		self.set_number(number, optimize)
+		self.set_number(exponent, optimize)
 		self.real = True
 		self.coefficients = Factor.get_exponents(self.number)
 		self.elementaries = Factor.get_elementaries(self.coefficients, real=self.real)
 		self.factorization, self.count = Factor.get_factorization(self.elementaries, real=self.real)
-		
 	
 	def __repr__(self):
 		return f"number: {self.number}\nfactorization: {self.factorization}\ncount: {self.count}"
@@ -87,7 +90,7 @@ class Factor(object):
 			ops += len(bases) - 1
 		return (ops)
 
-	def calculate(self, obj: object):
+	def power(self, obj: object):
 		def set_bases(obj: object, max_factor: int):
 			indexes = [2**i for i in range(1, max_factor.bit_length())]
 			bases = {1: obj}
