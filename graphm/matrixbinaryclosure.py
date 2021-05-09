@@ -3,9 +3,8 @@ Created on Apr 26, 2021
 
 @author: salem Aguemoun
 '''
-import graphm
-MatrixBinary = graphm.MatrixBinary
-#from .matrixbinary import MatrixBinary
+import graphm.matrixbinary
+MatrixBinary = graphm.matrixbinary.MatrixBinary
 
 
 class MatrixBinaryClosure(object):
@@ -16,10 +15,10 @@ class MatrixBinaryClosure(object):
 	
 	.. NOTE:: Closure can comes from MatrixBinary:
 		
-		 get_closure()
-		 get_closure_reflective()
-		 get_closure_reflective_optimized()
-		 get_closure_matrix()
+		 closure_reflexive(): (MatrixBinary, deep)
+		 closure_reflexive_optimized(): (MatrixBinary, operations)
+		 closure_matrix(): (binary, deep, list(MatrixBinary))
+		 closure_slides(): (MatrixBinary, deep, list(matrixM))
 		 
 	.. CAUTION:: Instance variables
 	
@@ -27,51 +26,52 @@ class MatrixBinaryClosure(object):
 	:var list closureMS: strings rows of transitive closure
 	:var list closureN:  integers columns of transitive closure
 	:var list closureNS: strings columns of transitive closure
+	:var int deep: max deep for transitive closure
 	:var int dim: dimension of square matrix
+	:var MatrixBinary matrix: original matrix come from closure
+	:var bool reflexive: if True closure is reflexive
 	:var list successors: list of successors of nodes
 	:var list successorsE: list of successors of nodes without nodes itself 
 	:var list unit: diagonal matrix with integers
 
 	**Graph for the majority of examples** 
 	
-	.. IMAGE:: files/mbs.png
+	.. IMAGE:: files/mbc.svg
 
 	"""
 
-	def __init__(self, closure: object) -> 'MatrixBinaryClosure':
+	def __init__(self, d) -> 'MatrixBinaryClosure':
 		""" Set closure and properties
 		
 		:param list closure: transitive closure
 		
 		:rtype: MatrixBinaryClosure
 		"""
-		if not closure:
-			raise ValueError("The closure are empty")
-		self.set_closure_binary(closure)
+		self.set_closure_binary(**d)
 
 	def __repr__(self) -> str:
-		""" Return dimension and deep of matrices
+		""" Return dimension, deep & reflexivity of closure
 		
-		:return: dimension and deep of matrices in one line
+		:return: dimension, deep & reflexivity of closure in one line
 		
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_slides())
 		
-		>>> repr(mbs)
+		>>> repr(mbc)
 		'dim=5 deep=3'
 		"""
-		return f"dim={self.dim} deep={self.deep}"
+		return f"dim={self.dim} reflexive={self.reflexive} deep={self.deep}"
 	
 	def __str__(self) -> str:
 		""" Return the representation of this object and the closure
 		
 		:return: repr() + the closure in 2 dimensions
 
-		>>> m =MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
+		>>> m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_slides())
 		
-		>>> print(mbs)
-		dim=5
+		>>> print(mbc)
+		dim=5 deep=3
 		01111
 		01111
 		01111
@@ -80,37 +80,7 @@ class MatrixBinaryClosure(object):
 		"""
 		return self.__repr__() + "\n" + "\n".join(m for m in self.closureMS)
 
-	def get_closure(self, style="int") -> list:
-		""" Return the formated matrix of transitive closure
-		
-		:param str style: style of export of closure
-			* **int** return 0/1 integers
-			* **str** Return string of '0'/'1'
-			* **bin** return binary integers
-
-		:return: the formated matrix of transitive closure
-		:rtype: list
-		
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		
-		>>> print(mbs.get_closure())
-		[[0, 1, 1, 1, 0], [0, 1, 0, 1, 0], [0, 0, 1, 0, 1], [0, 1, 0, 1, 0], [0, 0, 1, 0, 1]]
-		
-		>>> print(mbs.get_closure(style='str'))
-		['01110', '01010', '00101', '01010', '00101']
-		
-		>>> print(mbs.get_closure(style='bin'))
-		[14, 10, 5, 10, 5]
-		"""
-		if style == "int":
-			return [[int(i) for i in self.int2str(m)]for m in self.closureM]
-		elif style == "str":
-			return [self.int2str(m) for m in self.closureM]
-		elif style == "bin":
-			return self.closureM[:]
-	
-	def get_connectivity(self) -> dict:
+	def connectivity(self) -> dict:
 		""" Return a report on connectivity of graph in a dictionary
 		with  following indexes:
 		
@@ -125,15 +95,19 @@ class MatrixBinaryClosure(object):
 			:nodes_connected: (list[set(), ..]) groups of connected nodes
 
 		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		
-		>>> print(mbs.get_connectivity())
-		{'graph_connected_fully': False, 'nodes_lonely': set(), 'nodes_start': {0}, 'nodes_end': set(), 'nodes_connected_not': {0}, 'nodes_connected': [{1, 2, 3, 4}]}
+		>>> mbc = MatrixBinaryClosure(m.closure_matrix())
+		>>> mbc.connectivity()
+		{'graph_connected_fully': False, 'nodes_lonely': set(), 'nodes_start': {0}, 'nodes_end': set(), 'nodes_connected': [{1, 2, 3, 4}], 'nodes_connected_not': {0}}
+	
+		>>> m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_matrix())
+		>>> mbc.connectivity()
+		{'graph_connected_fully': False, 'nodes_lonely': {5}, 'nodes_start': {0, 5}, 'nodes_end': {4, 5}, 'nodes_connected': [{1, 2, 3}], 'nodes_connected_not': {0, 4}}
 		"""
 		graph_connected_fully = self.is_connected_fully()
-		nodes_lonely = self.get_nodes_lonely()
-		nodes_start = self.get_nodes_start()
-		nodes_end = self.get_nodes_end()
+		nodes_lonely = self.nodes_lonely()
+		nodes_start = self.nodes_start()
+		nodes_end = self.nodes_end()
 		
 		# logical 'and' between successors & ancestors
 		matrix_reflexive = [self.closureM[i] & self.closureN[i] for i in range(self.dim) if i not in nodes_lonely]
@@ -151,13 +125,44 @@ class MatrixBinaryClosure(object):
 			'nodes_lonely': nodes_lonely,
 			'nodes_start': nodes_start,
 			'nodes_end': nodes_end,
-			'nodes_connected_not': nodes_connected_not,
 			'nodes_connected': nodes_connected,
+			'nodes_connected_not': nodes_connected_not,
 			}
 	
-	def get_MS2NS(self) -> list:
-		""" Return the transpose of the closure
-		swapped closureM and closureN
+	def get_closure(self, style="int") -> list:
+		""" Return the formated matrix of transitive closure
+		
+		:param str style: style of export of closure
+			* **int** return 0/1 integers
+			* **str** Return string of '0'/'1'
+			* **bin** return binary integers
+
+		:return: the formated matrix of transitive closure
+		:rtype: list
+		
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		
+		>>> print(mbc.get_closure())
+		[[0, 1, 1, 1, 0], [0, 1, 0, 1, 0], [0, 0, 1, 0, 1], [0, 1, 0, 1, 0], [0, 0, 1, 0, 1]]
+		
+		>>> print(mbc.get_closure(style='str'))
+		['01110', '01010', '00101', '01010', '00101']
+		
+		>>> print(mbc.get_closure(style='bin'))
+		[14, 10, 5, 10, 5]
+		"""
+		if style == "int":
+			return [[int(i) for i in self.int2str(m)]for m in self.closureM]
+		elif style == "str":
+			return [self.int2str(m) for m in self.closureM]
+		elif style == "bin":
+			return self.closureM[:]
+	
+	@staticmethod
+	def get_MS2NS(matrixXS: list) -> list:
+		""" Return the transpose of the  matrixXS
+		matrixXS is matrixMS or matrixNS
 		
 		Convert rows of this matrix to columns
 
@@ -165,18 +170,53 @@ class MatrixBinaryClosure(object):
 		:rtype: list
 		
 		>>> m = MatrixBinary(boolean=['00001', '00100', '00010', '00000', '01001'])
-		>>> mbs = MatrixBinarySlides(m.get_closure_optimized())
-		>>> closure = mbs.get_closure(style='str')
+		>>> mbc = MatrixBinarySlides(m.closure_reflexive())
+		>>> closure = mbc.get_closure(style='str')
 		
 		>>> print(closure)
 		['01111', '00110', '00010', '00000', '01111']
 		
-		>>> print(mbs.get_MS2NS(closure))
+		>>> print(mbc.get_MS2NS(closure))
 		['00000', '10001', '11001', '11101', '10001']
 		"""
-		return [''.join(str(self.closure[m][n]) for m in range(self.dim)) for n in range(self.dim)]
+		return [''.join(str(matrixXS[m][n]) for m in range(len(matrixXS))) for n in range(len(matrixXS[0]))]
 	
-	def get_nodes_ancestors(self, node:int) -> set:
+	def int2str(self, line: int) -> str:
+		""" Return the converted  boolean string from binary integer,
+		string length is adjusted by to dim.
+		
+		dim is the dimension of line
+		
+		:param int line: line of boolean in integer representation
+		
+		:return: boolean strings
+		:rtype: str
+
+		>>> MatrixBinary.get_int2str(36, 10)
+		'0000100100'
+		"""
+		s = bin(line)[2:]
+		return s.zfill(self.dim)
+
+	def is_connected_fully(self) -> bool:
+		""" Return true if the graph is fully connected
+		
+		:return: true if the graph is fully connected
+		:rtype: bool
+		
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		
+		>>> mbc. is_connected_fully()
+		False
+		"""
+		full = 2**self.dim - 1
+		for m in self.closureM:
+			if m != full:
+				return False
+		return True
+	
+	def nodes_ancestors(self, node:int) -> set:
 		""" Return a set nodes that reach the given node
 		
 		:param int node: starting node
@@ -184,44 +224,44 @@ class MatrixBinaryClosure(object):
 		:return: ancestors of given node
 		:rtype: set
 
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
 		
-		>>> mbs.get_nodes_ancestors(4)
+		>>> mbc.nodes_ancestors(4)
 		{0, 1, 2, 3, 4}
 		
-		>>> mbs.get_nodes_ancestors(0)
+		>>> mbc.nodes_ancestors(0)
 		set()
 		"""
 		return {i for i in range(self.dim) if self.closureNS[node][i] == '1'}
 	
-	def get_nodes_end(self) -> set:
+	def nodes_end(self) -> set:
 		""" Return a set of ending nodes, with no successors
 		
 		:return: nodes with no successors
 		:rtype: set
 
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs.get_nodes_end()
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		>>> mbc.nodes_end()
 		set()
 		"""
 		return {i for i in range(self.dim) if self.closureM[i] == 0}
 	
-	def get_nodes_lonely(self) -> set:
+	def nodes_lonely(self) -> set:
 		""" Return a set of lonely nodes, with no successors & ancestors
 		
 		:return: nodes with no successors & ancestors
 		:rtype: set
 
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs.get_nodes_lonely()
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		>>> mbc.nodes_lonely()
 		set()
 		"""
-		return self.get_nodes_start() & self.get_nodes_end()
+		return self.nodes_start() & self.nodes_end()
 	
-	def get_nodes_reached_fully(self) -> set:
+	def nodes_reached_fully(self) -> set:
 		""" Return a set of finally reached nodes by all, even itself
 		
 		.. IMPORTANT:: all, EVEN ITSELF
@@ -229,15 +269,15 @@ class MatrixBinaryClosure(object):
 		:return: finally reached nodes by all, even itself
 		:rtype: set
 
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs.get_nodes_reached_fully()
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		>>> mbc.nodes_reached_fully()
 		{1, 2, 3, 4}
 		"""
 		full = 2**self.dim - 1
 		return {i for i in range(self.dim) if (self.closureN[i] == full)}
 	
-	def get_nodes_reached_fully_wow(self) -> set:
+	def nodes_reached_fully_wow(self) -> set:
 		""" Return a set of finally reached nodes by all, with or without itself 
 		
 		.. IMPORTANT:: all, WITH OR WITHOUT ITSELF
@@ -245,15 +285,15 @@ class MatrixBinaryClosure(object):
 		:return: finally reached nodes by all, with or without itself 
 		:rtype: set
 
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs.get_nodes_reached_fully_wow()
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		>>> mbc.nodes_reached_fully_wow()
 		{1, 2, 3, 4}
 		"""
 		full = 2**self.dim - 1
 		return {i for i in range(self.dim) if (self.closureN[i] | self.unit[i]) == full}
 	
-	def get_nodes_reaching_all(self) -> set:
+	def nodes_reaching_all(self) -> set:
 		""" Return a set of nodes finally reaching all, even itself
 		
 		.. IMPORTANT:: all, EVEN ITSELF
@@ -261,15 +301,15 @@ class MatrixBinaryClosure(object):
 		:return: nodes finally reaching all, even itself
 		:rtype: set
 
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs.get_nodes_reaching_all()
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		>>> mbc.nodes_reaching_all()
 		set()
 		"""
 		full = 2**self.dim - 1
 		return {i for i in range(self.dim) if self.closureM[i] == full}
 	
-	def get_nodes_reaching_all_wow(self) -> set:
+	def nodes_reaching_all_wow(self) -> set:
 		""" Return a set of nodes finally reaching all, with or without itself
 		
 		.. IMPORTANT:: all, WITH OR WITHOUT ITSELF
@@ -277,42 +317,42 @@ class MatrixBinaryClosure(object):
 		:return: nodes finally reaching all, with or without itself
 		:rtype: set
 
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs.get_nodes_reaching_all()
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		>>> mbc.nodes_reaching_all()
 		set()
 		"""
 		""" Return a set of nodes reaching all, with or without itself """
 		full = 2**self.dim - 1
 		return {i for i in range(self.dim) if (self.closureM[i] | self.unit[i]) == full}
 	
-	def get_nodes_reflexive(self) -> set:
+	def nodes_reflexive(self) -> set:
 		"""  Return a set of finally reflexive nodes, nodes reached by themselves
 		
 		:return: finally reflexive nodes
 		:rtype: set
 
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs.get_nodes_reflexive()
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		>>> mbc.nodes_reflexive()
 		{1, 2, 3, 4}
 		"""
 		return {m for m in range(self.dim) if self.closureMS[m][m] == '1'}
 	
-	def get_nodes_start(self) -> set:
+	def nodes_start(self) -> set:
 		""" Return a set of starting nodes, with no ancestors
 		
 		:return: nodes with no ancestors
 		:rtype: set
 
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs.get_nodes_start()
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		>>> mbc.nodes_start()
 		{0}
 		"""
 		return {i for i in range(self.dim) if self.closureN[i] == 0}
 	
-	def get_nodes_successors(self, node:int) -> set:
+	def nodes_successors(self, node:int) -> set:
 		""" Return a set of nodes finally reached by the given node
 		
 		:param int node: ancestor of nodes returned
@@ -320,72 +360,14 @@ class MatrixBinaryClosure(object):
 		:return: successors of given node
 		:rtype: set
 
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs.get_nodes_successors(4)
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		>>> mbc.nodes_successors(4)
 		{1, 2, 3, 4}
 		"""
 		return {i for i in range(self.dim) if self.closureMS[node][i] == '1'}
 
-	def get_paths_cycle(self, node_start:int, shortest:bool=False) -> dict:
-		""" Return a dictionary of paths of cycles found starting from node
-		
-		.. IMPORTANT:: by default returns all cycles presents in graph
-			To have  only found cycles until the transitive closure are reached,
-			put 'shortest' option to True
-		
-		:param int node_start: the starting node to search paths
-		:param bool shortest=False: if true limits paths to shortest ones, default is False
-
-		:return: paths of cycles
-		:rtype: dict
-
-			:paths_cycle: (list) all paths of cycles
-			:nodes_reached: (set) all reached nodes including starting node
-
-		>>> m = MatrixBinary(boolean=['00001', '00100', '00010', '00000', '01001'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs.get_paths_cycle(4)
-		{'paths_cycle': [], 'nodes_reached': {1, 2, 3, 4}}
-		
-		>>> m =MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs.get_paths_cycle(4)
-		{'paths_cycle': [[4, 3], [1, 2], [4, 1, 2, 3]], 'nodes_reached': {1, 2, 3, 4}}
-		"""
-		nodes_reached = {node_start}
-		paths_cycle = []
-		paths_cycle_set = set()
-		paths = [[node_start]]
-		deep_final = self.deep if shortest else self.dim
-
-		# no successors with or without itself
-		if (self.closureM[node_start] == 0) or (self.closureM[node_start] ^ 2**(self.dim - node_start - 1) == 0):
-			paths = []
-		
-		deep = 0
-		while deep < deep_final and paths:
-			paths_tmp = paths
-			paths = []
-			for path in paths_tmp:
-				successors = self.successorsE[path[deep]]
-				for node in successors:
-					nodes_reached.add(node)
-					if node not in path:
-						paths.append(path + [node])
-					else:
-						path_cycle = path[path.index(node):]
-						path_cycle_set = frozenset(path_cycle)
-						if path_cycle_set not in paths_cycle_set:
-							paths_cycle.append(path_cycle)
-							paths_cycle_set.add(path_cycle_set)
-			deep += 1
-		return {
-			'paths_cycle': paths_cycle,
-			'nodes_reached': nodes_reached,
-			}
-	
-	def get_paths_cycle_all(self) -> list:
+	def paths_cycle_all(self) -> list:
 		""" Return a dictionary of all paths of cycles found starting from node
 		
 		.. TODO:: implement the search of solutions
@@ -396,7 +378,7 @@ class MatrixBinaryClosure(object):
 			* select one node and get cycles without searching in visited nodes
 			* ... until all nodes are visited
 		
-		.. IMPORTANT:: **Solutions : Use get_connectivity() to select nodes for each connected !!** 
+		.. IMPORTANT:: **Solutions : Use connectivity() to select nodes for each connected !!** 
 		
 		:return: paths of all cycles of graph
 		:rtype: dict
@@ -406,17 +388,17 @@ class MatrixBinaryClosure(object):
 		"""
 		# find the shortest path to complete
 		
-		nodes_reaching_all = self.get_nodes_reaching_all_wow()
+		nodes_reaching_all = self.nodes_reaching_all_wow()
 		# global solution
 		if nodes_reaching_all:
 			node_from = nodes_reaching_all.pop()
-			return {node_from: self.get_paths_cycle(node_from)}
+			return {node_from: self.matrix.paths_cycle(node_from)}
 		
 		# solution by subsets
 		raise ValueError("Needs to be implemented ;o)")
 		""" TODO
-		nodes_ending = self.get_nodes_end()
-		nodes_starting = self.get_nodes_start()
+		nodes_ending = self.nodes_end()
+		nodes_starting = self.nodes_start()
 		
 		# get nodes reaching unique set of nodes and not in ending nodes
 		s = set()
@@ -434,11 +416,11 @@ class MatrixBinaryClosure(object):
 		
 		nodes_reached = set()
 		for node in range(self.dim):
-			nr_tmp = self.get_nodes_successors(node)
+			nr_tmp = self.nodes_successors(node)
 			if nr_tmp not in nodes_reachedg:
 				nodes_reaching[node] = nr_tmp
 				nodes_reached.add(nr_tmp)
-		#nodes_reaching = {node: self.get_nodes_successors(node) for node in range(self.dim)}
+		#nodes_reaching = {node: self.nodes_successors(node) for node in range(self.dim)}
 		
 		nodes_reaching = sorted(nodes_reaching.items(), key=lambda d: len(d[1]))
 		reached = False
@@ -446,136 +428,7 @@ class MatrixBinaryClosure(object):
 		#	nodes
 		"""
 	
-	def get_paths_from(self, node_start:int, shortest:bool=False) -> dict:
-		""" Return a dictionary of all paths starting from node
-		
-		.. IMPORTANT:: by default returns all paths presents in the graph
-			To have  only found cycles until the transitive closure are reached,
-			put 'shortest' option to True
-		
-		:param int node_start: the starting node to search paths
-		:param bool shortest=False: if true limits paths to shortest ones, default is False
-
-		:return: paths
-		:rtype: dict
-
-			:paths_final: (list) all paths which access to maximal deep
-			:paths_ended: (list) all paths which deep less than maximal one
-			:paths_cycle: (list) all paths of elementary cycles
-			:nodes_reached: (set) all reached nodes including starting node
-
-		>>> m =MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs.get_paths_from(1)
-		{'paths_final': [], 'paths_ended': [], 'paths_cycle': [[1, 2], [1, 2, 3, 4], [3, 4]], 'nodes_reached': {1, 2, 3, 4}}
-		
-		>>> mbs.get_paths_from(4)
-		{'paths_final': [], 'paths_ended': [], 'paths_cycle': [[4, 3], [1, 2], [4, 1, 2, 3]], 'nodes_reached': {1, 2, 3, 4}}
-		"""
-		nodes_reached = {node_start}
-		paths_ended = []
-		paths_cycle = []
-		paths_cycle_set = set()
-		paths = [[node_start]]
-		deep_final = self.deep if shortest else self.dim
-
-		# no successors with or without itself
-		if (self.closureM[node_start] == 0) or (self.closureM[node_start] ^ 2**(self.dim - node_start - 1) == 0):
-			paths = []
-		
-		deep = 0
-		while deep < deep_final and paths:
-			paths_tmp = paths
-			paths = []
-			for path in paths_tmp:
-				successors = self.successorsE[path[deep]]
-				if successors:
-					for node in successors:
-						nodes_reached.add(node)
-						if node not in path:
-							paths.append(path + [node])
-						else:
-							path_cycle = path[path.index(node):]
-							path_cycle_set = frozenset(path_cycle)
-							if path_cycle_set not in paths_cycle_set:
-								paths_cycle.append(path_cycle)
-								paths_cycle_set.add(path_cycle_set)
-				else:
-					paths_ended.append(path)
-			deep += 1
-
-		return {
-			'paths_final': paths,
-			'paths_ended': paths_ended,
-			'paths_cycle': paths_cycle,
-			'nodes_reached': nodes_reached,
-			}
-	
-	def get_paths_from_to(self, node_start: int, node_end: int, shortest:bool=True) -> list:
-		""" Return a dictionary of all paths starting from node 'node_start' to 'node_end'
-		
-		.. IMPORTANT:: by default returns all paths presents in the graph
-			To have  only found cycles until the transitive closure are reached,
-			put 'shortest' option to True
-		
-		:param int node_start: the starting node
-		:param int node_end: the ending node
-		:param bool shortest=False: if true limits paths to shortest ones, default is False
-
-		:return: paths
-		:rtype: dict
-
-			:count: (int) iterations count 
-			:nodes_reached: (set) all reached nodes including starting node
-			:paths_final: (list) all paths which access to maximal deep
-			:reached: (bool) True if node_end is reached by node_start
-
-		>>> m =MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		
-		>>> mbs.get_paths_from(3,2)
-		{'paths_final': [[3, 4, 1, 2]], 'paths_ended': [], 'paths_cycle': [[3, 4]], 'nodes_reached': {1, 2, 3, 4}}
-	
-		>>> mbs.get_paths_from(0,2)
-		{'paths_final': [[0, 1, 2, 3], [0, 4, 1, 2]], 'paths_ended': [], 'paths_cycle': [[1, 2], [4, 3]], 'nodes_reached': {0, 1, 2, 3, 4}}
-		"""
-		count = 1
-		reached = False
-		nodes_reached = {node_start}
-		paths = [[node_start]]
-		paths_final = []
-		deep_final = self.deep if shortest else self.dim # for security
-
-		# no successors with or without itself
-		if self.closureMS[node_start][node_end] == '0':
-			paths = []
-		
-		deep = 0
-		while (not shortest or (not reached and shortest)) and paths and deep < deep_final:
-			paths_tmp = paths
-			paths = []
-			for path in paths_tmp:
-				successors = self.successorsE[path[deep]]
-				for node in successors:
-					count += 1
-					if node == node_end:
-						paths_final.append(path + [node])
-						reached = True
-					else:
-						if node not in path:
-							nodes_reached.add(node)
-							paths.append(path + [node])
-				# clean paths if reached
-			deep += 1
-			
-		return {
-			'count': count,
-			'nodes_reached': nodes_reached,
-			'paths_final': paths_final,
-			'reached': reached,
-			}
-	
-	def get_report(self) -> dict:
+	def report(self) -> dict:
 		""" Return a report of c properties
 				
 		:param bool matrix: if True Return matrix content
@@ -601,130 +454,77 @@ class MatrixBinaryClosure(object):
 		:return: a report of matrix properties
 		:rtype: dict
 
-		.. IMAGE:: files/mbs.png
+		.. IMAGE:: files/mbc.svg
 
-		>>> m =MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		
-		>>> print(mbs)
+		>>> m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		>>> print(mbc)
 		dim=5 deep=3
-		01111
+		11111
 		01111
 		01111
 		01111
 		01111
 
-		>>> print(mbs.get_report())
-		{'reflexive_fully': {1, 2, 3, 4}, 'connected_fully': False, 'nodes_reached_fully': {1, 2, 3, 4}, 'nodes_reached_fully_wow': {1, 2, 3, 4}, 'nodes_reaching_all': set(), 'nodes_reaching_all_wow': {0}, 'nodes_start': {0}, 'nodes_end': set(), 'nodes_lonely': set(), 'nodes_reflexive': False}
+		>>> print(mbc.report())
+		{'reflexive_fully': {0, 1, 2, 3, 4}, 'connected_fully': False, 'nodes_reached_fully': {1, 2, 3, 4}, 'nodes_reached_fully_wow': {1, 2, 3, 4}, 'nodes_reaching_all': {0}, 'nodes_reaching_all_wow': {0}, 'nodes_start': set(), 'nodes_end': set(), 'nodes_lonely': set(), 'nodes_reflexive': False, 'matrix': ['11111', '01111', '01111', '01111', '01111']}
 		"""
 		d = {
-			'reflexive_fully': self.is_reflexive(),
+			'symetric': self.is_symetric(),
+			'reflexive': self.is_reflexive(),
 			'connected_fully': self.is_connected_fully(),
-			'nodes_reached_fully': self.get_nodes_reached_fully(),
-			'nodes_reached_fully_wow': self.get_nodes_reached_fully_wow(),
-			'nodes_reaching_all': self.get_nodes_reaching_all(),
-			'nodes_reaching_all_wow': self.get_nodes_reaching_all_wow(),
-			'nodes_start': self.get_nodes_start(),
-			'nodes_end': self.get_nodes_end(),
-			'nodes_lonely': self.get_nodes_lonely(),
-			'nodes_reflexive': self.is_reflexive(),
-			'reflexive_fully': self.get_nodes_reflexive(),
+			'nodes_reached_fully': self.nodes_reached_fully(),
+			'nodes_reached_fully_wow': self.nodes_reached_fully_wow(),
+			'nodes_reaching_all': self.nodes_reaching_all(),
+			'nodes_reaching_all_wow': self.nodes_reaching_all_wow(),
+			'nodes_start': self.nodes_start(),
+			'nodes_end': self.nodes_end(),
+			'nodes_lonely': self.nodes_lonely(),
+			'nodes_reflexive': self.nodes_reflexive(),
 			}
 		
 		d['matrix'] = self.get_closure(style='str')
 			
 		return d
 
-	def int2str(self, line: int) -> str:
-		""" Return the converted  boolean string from binary integer,
-		string length is adjusted by to dim.
-		
-		dim is the dimension of line
-		
-		:param int line: line of boolean in integer representation
-		
-		:return: boolean strings
-		:rtype: str
-
-		>>> MatrixBinary.get_int2str(36, 10)
-		'0000100100'
-		"""
-		s = bin(line)[2:]
-		return s.zfill(self.dim)
-
-	def is_connected_fully(self) -> bool:
-		""" Return true if the graph is fully connected
-		
-		:return: true if the graph is fully connected
-		:rtype: bool
-		
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		
-		>>> mbs. is_connected_fully()
-		False
-		"""
-		full = 2**self.dim - 1
-		for m in self.closureM:
-			if m != full:
-				return False
-		return True
-	
-	def is_reflexive(self) -> bool:
-		""" Return true if the graph is reflexive,
-		at least one return for each way
-		
-		.. IMPORTANT:: return True if each edge has at least one edge back
-		
-		:return: true if the graph is reflexive
-		:rtype: bool
-		
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs. is_reflexive()
-		False
-
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '10010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs. is_reflexive()
-		True
-		"""
-		for i in range(self.dim):
-			if self.closureM[i] & self.closureN[i]  != self.closureM[i]:
-				return False
-		return True
-	
-	def is_reflexive_fully(self) -> bool:
-		""" Return true if the graph is fully reflexive
-
-		.. IMPORTANT:: return True the graph is fully reflexive
-
-		:return: true if the graph is fully reflexive
-		:rtype: bool
-		
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs. is_reflexive_fully()
-		False
-
-		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '10010'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> mbs. is_reflexive_fully()
-		True
-		"""
-		for i in range(self.dim):
-			if self.closureM[i] != self.closureN[i]:
-				return False
-		return True
-	
-	def set_closure_binary(self, closure: object) -> None:
+	def set_closure_binary(self, matrix: 'MatrixBinary', closure: object, reflexive, deep: int=-1, **d) -> None:
 		""" Set properties of this object from closure binary
 		
 		:param object closure: transitive closure MatrixBinary class or matrixM list
 		
 		>>> m = MatrixBinary(boolean=['00001', '00100', '00010', '00000', '01001'])
-		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
-		>>> print(mbs)
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		>>> print(mbc)
+		dim=5 deep=4
+		11111
+		01110
+		00110
+		00010
+		01111
+		
+		>>> m = MatrixBinary(boolean=['00001', '00100', '00010', '00000', '01001'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive_optimized())
+		>>> print(mbc)
+		dim=5 deep=-1
+		11111
+		01110
+		00110
+		00010
+		01111
+		
+		>>> m = MatrixBinary(boolean=['00001', '00100', '00010', '00000', '01001'])
+		>>> mbc = MatrixBinaryClosure(m.closure_matrix())
+		>>> print(mbc)
+		dim=5 deep=4
+		01111
+		00110
+		00010
+		00000
+		01111
+		
+		>>> m = MatrixBinary(boolean=['00001', '00100', '00010', '00000', '01001'])
+		>>> mbc = MatrixBinaryClosure(m.closure_slides())
+		>>> print(mbc)
 		dim=5 deep=4
 		01111
 		00110
@@ -732,42 +532,45 @@ class MatrixBinaryClosure(object):
 		00000
 		01111
 		"""
+		self.matrix = matrix
+		self.deep = deep
+		self.reflexive = reflexive
+		# closure_reflexive_optimized / closure_reflexive_optimized
 		if isinstance(closure, MatrixBinary):
+			self.dim = closure.dimM
 			self.closureM = closure.matrixM
 			self.closureN = closure.matrixN
 			self.closureMS = [self.int2str(m) for m in self.closureM]
-			self.closureNS = self.get_MS2NS()
-			self.dim = closure.dimM
+			self.closureNS = MatrixBinaryClosure.get_MS2NS(self.closureMS)
 		elif isinstance(closure, list):
+			self.dim = len(closure)
 			self.closureM = closure.matrixM
 			self.closureMS = [self.int2str(m) for m in self.closureM]
-			self.closureNS = self.get_MS2NS()
+			self.closureNS = MatrixBinaryClosure.get_MS2NS(self.closureMS)
 			self.closureN = [self.str2int(n) for n in self.closureNS]
-			self.dim = len(closure)
 		else:
 			raise TypeError(f"Wrong type '{closure}' for closure")
 		
 		self.unit = [2**i for i in range(self.dim - 1,  -1, -1)]
-		self.successors = {m: [n for n in range(self.dim) if self.closureMS[0][m][n] == '1'] for m in range(self.dim)}
-		self.successorsE = {m: [n for n in range(self.dim) if self.closureMS[0][m][n] == '1' and m != n] for m in range(self.dim)}
-		
+		self.successors = {m: [n for n in range(self.dim) if self.closureMS[m][n] == '1'] for m in range(self.dim)}
+		self.successorsE = {m: [n for n in range(self.dim) if self.closureMS[m][n] == '1' and m != n] for m in range(self.dim)}
+
 	def str_report(self) -> str:
 		""" Return a string of report of closure properties
 		
 		"""
 		return f"{self.get_closure(style='str')}" \
+			+ f"symetric\t\t\t\t\t {self.is_symetric()}" \
 			+ f"reflexive\t\t\t\t\t {self.is_reflexive()}" \
-			+ f"\nfully reflexive\t\t\t\t {self.is_reflexive_fully()}" \
 			+ f"\nfully connected\t\t\t\t {self.is_connected_fully()}" \
-			+ f"\nnodes fully reached\t\t {self.get_nodes_reached_fully()}" \
-			+ f"\nnodes fully reached wow\t {self.get_nodes_reached_fully_wow()}" \
-			+ f"\nnodes reaching all\t\t\t {self.get_nodes_reaching_all()}" \
-			+ f"\nnodes reaching all wow\t\t {self.get_nodes_reaching_all_wow()}" \
-			+ f"\nnodes starting\t\t\t {self.get_nodes_start()}" \
-			+ f"\nnodes ending\t\t\t\t {self.get_nodes_end()}" \
-			+ f"\nnodes lonely\t\t\t\t {self.get_nodes_lonely()}" \
-			+ f"\nnodes reflexive\t\t\t {self.get_nodes_reflexive()}" \
-			#+ f"reflexive\t\t: {self.is_reflexive()}" \
+			+ f"\nnodes fully reached\t\t {self.nodes_reached_fully()}" \
+			+ f"\nnodes fully reached wow\t {self.nodes_reached_fully_wow()}" \
+			+ f"\nnodes reaching all\t\t\t {self.nodes_reaching_all()}" \
+			+ f"\nnodes reaching all wow\t\t {self.nodes_reaching_all_wow()}" \
+			+ f"\nnodes starting\t\t\t {self.nodes_start()}" \
+			+ f"\nnodes ending\t\t\t\t {self.nodes_end()}" \
+			+ f"\nnodes lonely\t\t\t\t {self.nodes_lonely()}" \
+			+ f"\nnodes reflexive\t\t\t {self.nodes_reflexive()}" \
 
 	def str2int(self, line: str) -> int:
 		""" Return the converted binary integer from boolean string,
