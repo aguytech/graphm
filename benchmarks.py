@@ -4,24 +4,27 @@ MatrixBinary = graphm.MatrixBinary
 MatrixBoolean = graphm.MatrixBoolean
 Factor = graphm.Factor
 
+"""
+	binary closures
 level = 4
-for n in range(20,220,20):
+for n in range(20,320,20):
 	m = MatrixBinary(random=(n,n), level=level)
 	t1 = datetime.datetime.now()
-	closure = m.get_closure_matrix(full=True)
+	closure = m.closure_matrix(full=True)
 	t2 = datetime.datetime.now()
 	print(n, (t2 - t1).total_seconds())
+"""
 
 """
 	test different closures
 def test_time(lines, name, obj, foo, **args):
 	t1 = datetime.datetime.now()
 	f = getattr(obj, foo)
-	r = f(**args)
+	result = f(**args)
 	t2 = datetime.datetime.now()
 	
-	if foo == 'get_closure_reflective_count':
-		_, deep = r
+	if foo == 'closure_reflexive':
+		_, deep = result
 		line.append(str(deep))
 	
 	if name not in titles:
@@ -31,17 +34,17 @@ def test_time(lines, name, obj, foo, **args):
 level = 2
 titles = ['n']
 lines = ""
-with open(f"files/benchmarks_closure-{level}-pypy.csv", "w") as f: 
+with open(f"files/benchmarks_closure-tmp.csv", "w") as f: 
 	f.write(f'level, {level}\n')
 	for n in range(20,1020,20):
 		m = MatrixBinary(random=(n,n), level=level)
-		mb = m.export2list()
+		mb = MatrixBinary.export2bool(m)
 		line = [str(n)]
 		
-		test_time(lines, 'closure_reflective_count', m, 'get_closure_reflective_count')
-		test_time(lines, 'closure_reflective_optimized', m, 'get_closure_reflective_optimized')
-		test_time(lines, 'closure_reflective_optimized_soft', m, 'get_closure_reflective_optimized', optimize='soft')
-		test_time(lines, 'closure_reflective_optimized_hard', m, 'get_closure_reflective_optimized', optimize='hard')
+		test_time(lines, 'closure_reflexive', m, 'closure_reflexive')
+		test_time(lines, 'closure_reflexive_optimized', m, 'closure_reflexive_optimized')
+		test_time(lines, 'closure_reflexive_optimized_soft', m, 'closure_reflexive_optimized', optimize='soft')
+		test_time(lines, 'closure_reflexive_optimized_hard', m, 'closure_reflexive_optimized', optimize='hard')
 		
 		lines += ','.join(line) + '\n'
 		print(','.join(line))
@@ -50,13 +53,18 @@ with open(f"files/benchmarks_closure-{level}-pypy.csv", "w") as f:
 	f.write(lines)
 """
 	
+
 """
 	test different closures
+"""
 def test_time(lines, name, obj, foo, **args):
 	t1 = datetime.datetime.now()
 	f = getattr(obj, foo)
-	f(**args)
+	result = f(**args)
 	t2 = datetime.datetime.now()
+	
+	if foo == 'closure_reflexive':
+		line.append(str(result['deep']))
 	
 	if name not in titles:
 		titles.append(name)
@@ -65,95 +73,32 @@ def test_time(lines, name, obj, foo, **args):
 level = 4
 titles = ['n']
 lines = ""
-with open("files/benchmarks_closure.csv", "w") as f: 
-	lines += f'level: {level}\n'
+with open(f"files/benchmarks_closure-tmp.csv", "w") as f: 
+	f.write(f'level, {level}\n')
 	for n in range(20,520,20):
 		m = MatrixBinary(random=(n,n), level=level)
-		mb = m.export2list()
+		mb =MatrixBinary.export2bool(m)
 		line = [str(n)]
 		
-		test_time(lines, 'closure_reflective', m, 'get_closure_reflective')
-		test_time(lines, 'closure_reflective_full', m, 'get_closure_reflective', full=True)
-		test_time(lines, 'closure_reflective_optimized', m, 'get_closure_reflective_optimized')
-		test_time(lines, 'closure_reflective_optimized_soft', m, 'get_closure_reflective_optimized', optimize='soft')
-		test_time(lines, 'closure_reflective_optimized_hard', m, 'get_closure_reflective_optimized', optimize='hard')
-		test_time(lines, 'closure_matrix', m, 'get_closure_matrix')
-		test_time(lines, 'closure_matrix_full', m, 'get_closure_matrix', full=True)
-		test_time(lines, 'closure_slides', m, 'get_closure_slides')
-		test_time(lines, 'closure_slides_full', m, 'get_closure_slides', full=True)
+		test_time(lines, 'closure_reflexive', m, 'closure_reflexive')
+		test_time(lines, 'closure_reflexive_full', m, 'closure_reflexive', full=True)
+
+		test_time(lines, 'closure_reflexive_optimized', m, 'closure_reflexive_optimized')
+		test_time(lines, 'closure_reflexive_optimized_soft', m, 'closure_reflexive_optimized', optimize='soft')
+		test_time(lines, 'closure_reflexive_optimized_hard', m, 'closure_reflexive_optimized', optimize='hard')
 		
+		test_time(lines, 'closure_matrix', m, 'closure_matrix')
+		test_time(lines, 'closure_matrix_full', m, 'closure_matrix', full=True)
+
+		test_time(lines, 'closure_slides', m, 'closure_slides')
+		test_time(lines, 'closure_slides_full', m, 'closure_slides', full=True)
+
 		lines += ','.join(line) + '\n'
 		print(','.join(line))
 				
 	f.write(','.join(titles) + '\n')
 	f.write(lines)
-"""
 	
-"""
-	test different closures
-f = open("files/benchmarks_closure.csv", "w")
-
-level = 4
-print('level', level)
-print('n, closure, closure_full, closure_ro, closure_ros, closure_roh, closure_matrix, closure_matrix_full, closure_slides, closure_slides_full')
-f.write(f'level: {level}\n')
-f.write('n, t_closure, t_closure_full, closure_ro, t_closure_ros, t_closure_roh, t_closure_matrix, t_closure_matrix_full, t_closure_slides, t_closure_slides_full\n')
-for n in range(20,520,20):
-	m = MatrixBinary(random=(n,n), level=level)
-	mb = m.export2list()
-
-	print(n)
-	
-	t1 = datetime.datetime.now()
-	closure = m.get_closure_reflective(add=True)
-	t2 = datetime.datetime.now()
-	t_closure = (t2 - t1).total_seconds()
-	
-	t1 = datetime.datetime.now()
-	closure_full = m.get_closure_reflective(add=True, full=True)
-	t2 = datetime.datetime.now()
-	t_closure_full = (t2 - t1).total_seconds()
-	
-	t1 = datetime.datetime.now()
-	closure_ro, count = m.get_closure_reflective_optimized()
-	t2 = datetime.datetime.now()
-	t_closure_ro = (t2 - t1).total_seconds()
-	
-	t1 = datetime.datetime.now()
-	closure_ros, count = m.get_closure_reflective_optimized(optimize='soft')
-	t2 = datetime.datetime.now()
-	t_closure_ros = (t2 - t1).total_seconds()
-	
-	t1 = datetime.datetime.now()
-	closure_roh, count = m.get_closure_reflective_optimized(optimize='hard')
-	t2 = datetime.datetime.now()
-	t_closure_roh = (t2 - t1).total_seconds()
-	
-	t1 = datetime.datetime.now()
-	closure_matrix = m.get_closure_matrix(add=True)
-	t2 = datetime.datetime.now()
-	t_closure_matrix = (t2 - t1).total_seconds()
-	
-	t1 = datetime.datetime.now()
-	closure_matrix_full = m.get_closure_matrix(add=True, full=True)
-	t2 = datetime.datetime.now()
-	t_closure_matrix_full = (t2 - t1).total_seconds()
-	
-	t1 = datetime.datetime.now()
-	closure_slides = m.get_closure_slides(add=True)
-	t2 = datetime.datetime.now()
-	t_closure_slides = (t2 - t1).total_seconds()
-	
-	t1 = datetime.datetime.now()
-	closure_slides_full = m.get_closure_slides(add=True, full=True)
-	t2 = datetime.datetime.now()
-	t_closure_slides_full = (t2 - t1).total_seconds()
-	
-	print(f'{n}, {t_closure}, {t_closure_full}, {t_closure_ro}, {t_closure_ros}, {t_closure_roh}, {t_closure_matrix}, {t_closure_matrix_full}, {t_closure_slides}, {t_closure_slides_full}')
-	f.write(f'{n}, {t_closure}, {t_closure_full}, {t_closure_ro}, {t_closure_ros}, {t_closure_roh}, {t_closure_matrix}, {t_closure_matrix_full}, {t_closure_slides}, {t_closure_slides_full}\n')
-
-f.close()
-"""
 
 """
 	PERFORMANCE MATRIX_BOOLEAN
@@ -292,7 +237,7 @@ for n in range(10,210,10):
 	#print(m)
 	
 	t1 = datetime.datetime.now()
-	mc = m.get_closure_slides_dict()
+	mc = m.closure_slides_dict()
 	t2 = datetime.datetime.now()
 	print(n, " : ", (t2 - t1).total_seconds())
 """
@@ -310,7 +255,7 @@ for n in range(50,550,50):
 		#print(m)
 		
 		t1 = datetime.datetime.now()
-		mc = m.get_closure_slides()
+		mc = m.closure_slides()
 		mbs = MatrixBinarySlides(binary=mc)
 		t2 = datetime.datetime.now()
 		#print(mbs)
