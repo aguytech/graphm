@@ -5,9 +5,9 @@ Created on Apr 26, 2021
 '''
 import functools
 import random as rnd
-from .amatrix import AMatrix
+import graphm.amatrix
 
-class MatrixBoolean(AMatrix):
+class MatrixBoolean(graphm.amatrix.AMatrix):
 	""" Manage a boolean matrix
 	
 	.. NOTE:: For inherited class variables see :class:`graphm.amatrix.AMatrix`
@@ -259,7 +259,7 @@ class MatrixBoolean(AMatrix):
 		"""
 		self.matrix[m][n] = value
 	
-	def get_transpose(self) -> 'MatrixBoolean':
+	def transposed(self) -> 'MatrixBoolean':
 		""" Return the transpose of this matrix
 		Give the diagonal symmetry of matrix
 		
@@ -267,7 +267,7 @@ class MatrixBoolean(AMatrix):
 		:rtype: MatrixBinary
 
 		>>> m = MatrixBoolean(matrix=[[0, 0, 0, 0, 1], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0]])
-		>>> m2 = m.get_transpose()
+		>>> m2 = m.transposed()
 		>>> m2
 		000,000,010,001,100
 		"""
