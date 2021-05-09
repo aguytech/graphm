@@ -8,23 +8,32 @@ m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
 g = Graph(binary=m, node_style='int')
 g.draw("files/test_binaryclosure-1.svg", ext='svg')
 
-mbc = MatrixBinaryClosure(m.closure_matrix())
-connectivity = mbc.connectivity()
-print(connectivity)
-
 m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
 g = Graph(binary=m, node_style='int')
 g.draw("files/test_binaryclosure-2.svg", ext='svg')
 
-mbc = MatrixBinaryClosure(m.closure_matrix())
-connectivity = mbc.connectivity()
-print(connectivity)
+mbc = MatrixBinaryClosure(m.closure_reflexive())
+mbc = MatrixBinaryClosure(m.closure_slides())
 
+formated = MatrixBinary.get_matrix_formated(mbc.closure)
+
+nodes_start = mbc.nodes_start()
+print('nodes_start', nodes_start)
+connectivity = mbc.connectivity()
+print('connectivity', connectivity)
 paths = mbc.matrix.paths_from(1)
-print(paths)
+print('paths', paths)
+nodes_start = mbc.nodes_start()
+nodes_end = mbc.nodes_end()
+lonely = mbc.nodes_lonely()
+print('lonely', lonely)
+
+report = mbc.report()
+print(mbc.str_report())
 
 """
 	test all get_closure
+"""
 n = 20
 m = MatrixBinary(random=(n, n), level=100)
 print('m', m)
@@ -45,7 +54,5 @@ print('mbc', '\n', mbc)
 mcr = m.closure_slides()
 mbc = MatrixBinaryClosure(mcr)
 print('mbc', '\n', mbc)
-"""
-
 
 print("end")
