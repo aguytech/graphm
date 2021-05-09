@@ -342,53 +342,6 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 			'matrices': matrices
 			}
 
-	def connect_nodes(self, inM: int, outM: int) -> dict:
-		""" Return information about the connectivity between
-		one starting and one ending nodes in this matrix 
-		
-		:param in inM: node number to start
-		:param in outM: node number to end
-		
-		:return: informations about connectivity between 2 nodes
-		:rtype: dict
-		
-		:connect: (bool) True if matrix is connected
-		:deep: (int) The minimal deep of this state
-		:matrix: (:class:`MatrixBinary`) The first adjacency matrix of full connectivity
-		
-		>>> m = MatrixBinary(boolean=['0000', '0010', '1001', '0101'])
-		>>> m.connect_nodes(1,2)
-		{'connect': True, 'deep': 1, 'matrix': 1000,0110,1011,0101}
-	"""
-		# wrong dimensions
-		if self.dimM != self.dimN:
-			raise ValueError("Matrix have wrong dimensions")
-		
-		deep = 1
-		connect = False
-		mask = 2**(self.dimN - outM)
-		unit = [2**i for i in range(self.dimM-1, -1, -1)]
-		matrixM = [self.matrixM[i] | unit[i] for i in range(self.dimM)]
-		matrixN = [self.matrixN[i] | unit[i] for i in range(self.dimN)]
-		
-		#test
-		if (matrixM[inM] & mask) == mask:
-			connect = True
-
-		while connect == False and deep < self.dimM:
-			deep += 1
-			# mul
-			for m in range(self.dimM):
-				#line = [('0' if (matrixM[m] & matrixN[n]) == 0 else '1') for n in range(self.dimN)]
-				matrixM[m] = int('0b' + ''.join(('0' if (matrixM[m] & matrixN[n]) == 0 else '1') for n in range(self.dimN)), 2)
-
-			if (matrixM[inM] & mask) == mask:
-				connect = True
-			
-		#result
-		matrix = MatrixBinary(matrix=(matrixM, self.dimN))
-		return {'connect': connect, 'deep': deep, 'matrix': matrix}
-
 	def copy(self) -> 'MatrixBinary':
 		""" Return a copy of matrix
 		
@@ -401,21 +354,6 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		"""
 		return self.__deepcopy__()
 		
-	@staticmethod
-	def export2bool(matrix: 'MatrixBinary') -> list:
-		""" Return the matrix content in a list
-		
-		:param MatrixBinary matrix: matrix of graph
-		
-		:return: list of integers 0/1 in 2 dimensions of matrix contents
-		:rtype: list
-
-		>>> m = MatrixBinary(boolean=['00001', '00100', '00010'])
-		>>> MatrixBinary.export2bool(m)
-		[[0, 0, 0, 0, 1], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0]]
-		"""
-		return [[int(i) for i in MatrixBinary.get_int2str(line, matrix.dimN)] for line in matrix.matrixM]
-	
 	@staticmethod
 	def get_int2str(line: int, dim: int) -> str:
 		""" Return the converted  boolean string from binary integer,
@@ -435,6 +373,36 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		s = bin(line)[2:]
 		return s.zfill(dim)
 
+	@staticmethod
+	def get_matrix_formated(matrix: 'MatrixBinary', style='int') -> list:
+		""" Return the formated matrix passed in argument
+		
+		:param str style: style of export of closure
+			* **int** return 0/1 integers
+			* **str** Return string of '0'/'1'
+			* **bin** return binary integers
+
+		:return: the formated matrix of transitive closure
+		:rtype: list
+		
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		
+		>>> print(MatrixBinary.get_matrix_formated(m))
+		[[0, 1, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0], [0, 1, 0, 1, 0, 0], [0, 1, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]
+		
+		>>> print(MatrixBinary.get_matrix_formated(m, style='str'))
+		['010010', '001000', '010100', '010010', '000000', '000000']
+		
+		>>> print(MatrixBinary.get_matrix_formated(m, style='bin'))
+		[18, 8, 20, 18, 0, 0]
+		"""
+		if style == "int":
+			return [[int(i) for i in MatrixBinary.get_int2str(m, matrix.dimN)]for m in matrix.matrixM]
+		elif style == "str":
+			return [MatrixBinary.get_int2str(m, matrix.dimN) for m in matrix.matrixM]
+		elif style == "bin":
+			return matrix.matrixM[:]
+	
 	@staticmethod
 	def get_matrix_united(matrix : 'MatrixBinary') -> 'MatrixBinary':
 		""" Return matrix added of unit matrix
@@ -815,57 +783,61 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 			'count': count,
 			}
 	
-	def report_connect(self) -> dict:
-		""" Return information about the full connectivity of this matrix 
-		
-		:return: informations about connectivity in a dictionary with indexes:
+	def report(self) -> dict:
+		""" Return a report of c properties
+				
+		:return: a report of matrix properties
 		:rtype: dict
 		
-			with following indexes:
-			
-			:connect: (bool) True if matrix is connected
-			:deep: (int) The minimal deep of this state
-			:matrix: (:class:`MatrixBinary`) The first adjacency matrix of full connectivity
-		
-		>>> m = MatrixBinary(boolean=['0000', '0010', '1001', '0101'])
-		>>> m.report_connect()
-		{'connect': False, 'deep': 4, 'matrix': 1000,1111,1111,1111}
-		
-		>>> m = MatrixBinary(boolean=['0100', '0010', '1001', '0101'])
-		>>> m.report_connect()
-		{'connect': True, 'deep': 3, 'matrix': 1111,1111,1111,1111}
-	"""
-		# wrong dimensions
-		if self.dimM != self.dimN:
-			raise ValueError("Matrix have wrong dimensions")
-		
-		# get matrix + unit matrix
-		unit = [2**i for i in range(self.dimM-1, -1, -1)]
-		matrixM = [self.matrixM[i] | unit[i] for i in range(self.dimM)]
-		matrixN = [self.matrixN[i] | unit[i] for i in range(self.dimN)]
+			:matrix: (list) original matrix in format 'str'
+			:closure: (list) transitive closure in format 'str'
 
-		deep = 1
-		mask_init = 2**self.dimM - 1
-		
-		# test
-		connect = mask_init in matrixM
-		
-		# loops on n-2
-		while connect == False and deep < self.dimM:
-			deep += 1
-			mask = mask_init
-			# mul
-			for m in range(self.dimM):
-				#line = [('0' if (matrixM[m] & matrixN[n]) == 0 else '1') for n in range(self.dimN)]
-				matrixM[m] = int('0b' + ''.join([('0' if (matrixM[m] & matrixN[n]) == 0 else '1') for n in range(self.dimN)]), 2)
-				mask = mask & matrixM[m]
+			:symmetric_min: (bool) if true graph has a minimal symmetry (each edge has a reverse edge)
+			:symmetric: (bool) if true graph is symmetric
+			:reflexive: (bool) if true graph is reflexive
 			
-			if mask == mask_init:
-				connect = True
+		:return: a report of matrix properties
+		:rtype: dict
 
-		#result
-		matrix = MatrixBinary(matrix=(matrixM, self.dimN))
-		return {'connect': connect, 'deep': deep, 'matrix': matrix}
+		.. IMAGE:: files/m.svg
+
+		>>> m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> print(m)
+		dim 6,6
+		010010
+		001000
+		010100
+		010010
+		000000
+		000000
+
+		>>> print(m.report())
+		{'symmetric_min': False, 'symmetric': False, 'reflexive': False, 'matrix': ['010010', '001000', '010100', '010010', '000000', '000000']}
+
+		.. IMAGE:: files/m2.svg
+
+		>>> m = MatrixBinary(boolean=['010010', '001001', '010100', '010010', '000000', '100000'])
+		>>> print(m)
+		dim 6,6
+		010010
+		001001
+		010100
+		010010
+		000000
+		100000
+
+		>>> print(m.report())
+		{'symmetric_min': False, 'symmetric': False, 'reflexive': False, 'matrix': ['010010', '001001', '010100', '010010', '000000', '100000']}
+		"""
+		report = {
+			'symmetric_min': MatrixBinary.is_symmetric_min(self),
+			'symmetric': MatrixBinary.is_symmetric(self),
+			'reflexive': MatrixBinary.is_reflexive(self),
+			}
+		
+		report['matrix'] = MatrixBinary.get_matrix_formated(self, style='str')
+			
+		return report
 
 	def set_from_boolean(self, boolean: list) -> None:
 		""" Set content of the matrix  from the boolean matrix given
@@ -1011,7 +983,7 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		""" Set content of the matrix  from the matrixM given and dimN
 		get a binary matrix contains a list of integers and with the number of columns
 		
-		..WARNING: matrix is passed by reference !
+		.. WARNING:: matrix is passed by reference !
 		
 		:param tuple m: contains following indexes
 		

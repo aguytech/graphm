@@ -17,6 +17,14 @@ print(closure_m['closure'])
 print("end")
 print()
 """
+m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+g = Graph(binary=m, node_style='int')
+g.draw("files/m.svg", ext='svg')
+m = MatrixBinary(boolean=['010010', '001001', '010100', '010010', '000000', '100000'])
+g = Graph(binary=m, node_style='int')
+g.draw("files/m2.svg", ext='svg')
+
+
 m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '10010'])
 
 m = MatrixBinary(boolean=['011010', '101000', '110100', '001010', '100100', '000000'])
@@ -31,8 +39,6 @@ reflexive = MatrixBinary.is_reflexive(m)
 
 
 m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000001'])
-
-r = m.connect_nodes(0, 3)
 
 r = m.paths_from(0, 3)
 print(r)
@@ -49,7 +55,6 @@ print(r)
 n = 5
 for _ in range(10):
 	m = MatrixBinary(random=(n,n), level=200)
-	mb = MatrixBinary.export2bool(m)
 	
 	# reflective
 	print('/ reflective /')
