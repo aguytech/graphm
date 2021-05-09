@@ -61,7 +61,8 @@ class GraphPert(graphm.graph.Graph):
 	.. CAUTION:: Instance variables
 	
 	:var list matrix: matrix of graph.
-	Generated from initialization to simplify the build of Pert's graph
+	
+		Generated from initialization to simplify the build of Pert's graph
 	
 	:var pygraphviz.AGraph viz: manage drawing in dot format with :class:`pygraphviz.AGraph`
 

@@ -21,12 +21,16 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 	
 	:var list matrixM: contents binary integers for rows
 	:var list matrixN: contents binary integers for columns
+	:var int dimM: rows number of matrix
+	:var int dimN: columns number of matrix
 	"""
 
 	def __init__(self, **d) -> 'MatrixBinary':
 		""" Set the matrix properties with type given by one in:
 		
 		* **matrix** get a binary matrixM and dimN
+		* **reference** get a MatrixBinary matrix by reference
+		* **matrices** get the 2 matrices matrixM & matrixN
 		* **boolean** get a boolean matrix
 		* **empty** get 2 dimensions of an empty matrix
 		* **random** get 2 dimensions of randomized matrix
@@ -37,15 +41,14 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 			with following indexes:
 			
 			:matrix: (tuple) matrixM in [int, ...] and dimN: int
+			:matrces: (tuple) matrixM in [int, ...] and dimN: int
 			:boolean: (list) matrix in [str, ...] or [[int,...], ...] or (str, ...) or ((int,...), ...)
 			:empty: (tuple) dimensions for matrix (dimM: int, dimN: int)
 			:random: (tuple) dimensions for matrix (dimM: int, dimN: int)
 			:unit: (int) dimensions for square matrix
 			
 		For default options see :class:`AMatrix.__init__`
-			
-		:return: the matrix
-		:rtype: MatrixBinary
+		
 		"""
 		super().__init__(**d)
 	
@@ -276,10 +279,10 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 					
 		return {
 			'matrix': self,
+			'matrices': matrices,
 			'closure': MatrixBinary(matrix=(closureM, self.dimN)),
 			'reflexive': reflexive,
 			'deep': deep,
-			'matrices': matrices
 			}
 	
 	def closure_slides(self, add=False,  full=False) -> dict:
@@ -336,10 +339,10 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 						
 		return {
 			'matrix': self,
+			'matrices': matrices,
 			'closure': MatrixBinary(matrix=(closureM, self.dimN)),
 			'reflexive': reflexive,
 			'deep': deep,
-			'matrices': matrices
 			}
 
 	def copy(self) -> 'MatrixBinary':
@@ -957,6 +960,26 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		self.matrixM = [int('0b' + ''.join(line), 2) for line in matrix]
 		self.matrixM2N()
 
+	def set_from_reference(self, matrix) -> None:
+		""" Set content of the matrix  from the matrixM given and dimN
+		get a binary matrix contains a list of integers and with the number of columns
+		
+		.. WARNING:: matrix is passed by reference !
+		
+		:param tuple m: contains following indexes
+		
+			:matrixM: (list) rows with integers
+			:dimN: (int) the number of columns
+					
+		>>> m = MatrixBinary(matrix=([1, 4, 2], 5))
+		>>> m
+		00001,00100,00010
+		"""
+		matrixM, self.dimN = matrix
+		self.matrixM = matrixM
+		self.dimM = len(self.matrixM)
+		self.matrixM2N()
+	
 	def set_from_unit(self, unit: int) -> None:
 		""" Set an unit matrix: an empty square matrix with diagonal to 1
 
@@ -979,26 +1002,6 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		self.matrixN = [i  for i in matrix]
 		self._set_dim(dim, dim)
 
-	def set_from_reference(self, matrix) -> None:
-		""" Set content of the matrix  from the matrixM given and dimN
-		get a binary matrix contains a list of integers and with the number of columns
-		
-		.. WARNING:: matrix is passed by reference !
-		
-		:param tuple m: contains following indexes
-		
-			:matrixM: (list) rows with integers
-			:dimN: (int) the number of columns
-					
-		>>> m = MatrixBinary(matrix=([1, 4, 2], 5))
-		>>> m
-		00001,00100,00010
-		"""
-		matrixM, self.dimN = matrix
-		self.matrixM = matrixM
-		self.dimM = len(self.matrixM)
-		self.matrixM2N()
-	
 	def str(self):
 		""" Return a representation on 2 dimensions of 2 matrices.
 		the original one and its transposed
@@ -1044,7 +1047,7 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 
 	def transposed(self) -> 'MatrixBinary':
 		""" Return the transpose of this matrix
-		Give the diagonal symmetry of matrix
+		The diagonal symmetry of matrix
 		
 		:return: the transpose of this matrix
 		:rtype: MatrixBinary

@@ -15,10 +15,35 @@ class MatrixBinaryClosure(object):
 	
 	.. NOTE:: Closure can comes from MatrixBinary:
 		
-		 closure_reflexive(): (MatrixBinary, deep)
-		 closure_reflexive_optimized(): (MatrixBinary, operations)
-		 closure_matrix(): (binary, deep, list(MatrixBinary))
-		 closure_slides(): (MatrixBinary, deep, list(matrixM))
+		:closure_reflexive(): 
+			
+			:matrix: MatrixBinary: original matrix
+			:closure: MatrixBinary: transitive closure
+			:reflexive: bool: if matrix is reflexive
+			:deep: int deep: deep rank of closure
+			
+		:closure_reflexive_optimized():
+			
+			:matrix: MatrixBinary: original matrix
+			:closure: MatrixBinary: transitive closure
+			:reflexive: bool: if matrix is reflexive
+			:operations: int: number of operations
+			
+		:closure_matrix():
+			
+			:matrix: MatrixBinary: original matrix
+			:matrices: MatrixBinary: intermediate matrices
+			:closure: MatrixBinary closure: transitive closure
+			:reflexive: bool: if matrix is reflexive
+			:deep: int deep: deep rank of closure
+			
+		:closure_slides(): (MatrixBinary, deep, list(matrixM))
+			
+			:matrix: MatrixBinary: original matrix
+			:matrices: list: intermediate matrices in matrixM
+			:closure: MatrixBinary closure: transitive closure
+			:reflexive: bool: if matrix is reflexive
+			:deep: int deep: deep rank of closure
 		 
 	.. CAUTION:: Instance variables
 	
@@ -39,11 +64,21 @@ class MatrixBinaryClosure(object):
 	"""
 
 	def __init__(self, d) -> 'MatrixBinaryClosure':
-		""" Set closure and properties
+		""" Set closure and properties from following methods of MatrixBinary:
 		
-		:param list closure: transitive closure
+		:param dict d: options to specify the type of matrix
 		
-		:rtype: MatrixBinaryClosure
+			with following indexes:
+			
+			:matrix: MatrixBinary: original matrix
+			:closure: MatrixBinary: transitive closure
+			:reflexive: bool: if matrix is reflexive
+			
+			optional indexes:
+			
+			:matrices: list: intermediate matrices (MatrixBinary or matrix)
+			:deep: int deep: deep rank of closure
+			:operations: int: number of operations
 		"""
 		self.set_closure_binary(**d)
 
