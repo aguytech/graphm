@@ -4,8 +4,10 @@ Created on Apr 26, 2021
 @author: salem Aguemoun
 '''
 import pygraphviz
-from .matrixboolean import MatrixBoolean
-from .matrixbinary import MatrixBinary
+import graphm.matrixbinary
+import graphm.matrixboolean
+MatrixBinary = graphm.matrixbinary.MatrixBinary
+MatrixBoolean = graphm.matrixboolean.MatrixBoolean
 
 class Graph(object):
 	""" Manage graph with matrix.

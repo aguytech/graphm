@@ -6,9 +6,9 @@ from graphm import MatrixBinarySlides
 from graphm import GraphM
 
 m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
-mc = (m.get_closure_slides())
+mc = (m.closure_slides())
 mbs = MatrixBinarySlides(mc)
-c = mbs.get_paths_from(4)
+c = mbs.paths_from(4)
 print('m', m)
 print()
 print('c', c)
@@ -19,7 +19,7 @@ print('mbs', mbs)
 
 
 m = MatrixBinary(boolean=['00001', '00100', '00010', '00000', '01001'])
-mbs = MatrixBinarySlides(m.get_closure_slides())
+mbs = MatrixBinarySlides(m.closure_slides())
 closure = mbs.get_closure()
 print('closure', closure)
 print(mbs.get_slide_MS2NS(closure))

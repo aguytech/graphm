@@ -3,9 +3,9 @@ Created on Apr 26, 2021
 
 @author: salem Aguemoun
 '''
-from .graph import Graph
+import graphm.graph
 
-class GraphPert(Graph):
+class GraphPert(graphm.graph.Graph):
 	""" Manage Pert graph.
 	
 	Data is directly stored in :class:`pygraphviz.Agraph`

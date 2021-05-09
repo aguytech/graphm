@@ -47,7 +47,7 @@ class AMatrix(object):
 		:rtype: object
 		"""
 		# call the good method to initialize object
-		for attr in ('matrix', 'boolean', 'empty', 'random', 'unit'):
+		for attr in ('matrix', 'matrices', 'boolean', 'empty', 'random', 'unit'):
 			if attr in d:
 				self._call_init(f"set_from_{attr}", **d)
 				break
@@ -134,7 +134,7 @@ class AMatrix(object):
 		"""
 		pass
 	
-	def get_transpose(self) -> None:
+	def transposed(self) -> None:
 		""" Return the transpose of this matrix
 		
 		flips matrix over its diagonal

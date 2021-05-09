@@ -4,9 +4,9 @@ Created on Apr 26, 2021
 @author: salem Aguemoun
 '''
 import functools
-from .matrixboolean import MatrixBoolean
+import graphm.matrixboolean
 
-class Matrix(MatrixBoolean):
+class Matrix(graphm.matrixboolean.MatrixBoolean):
 	""" Manage a arithmetic matrix
 	
 	.. CAUTION:: Instance variables
