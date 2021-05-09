@@ -633,21 +633,6 @@ class MatrixBinaryClosure(object):
 		minimal symmetry        False
 		"""
 		trans = {
-		'symmetric_min': 'minimal symmetry\t\t\t',
-		'symmetric': 'symmetric\t\t\t\t',
-		'reflexive': 'reflexive\t\t\t\t\t',
-		'connected_fully': 'fully connected\t\t\t',
-		'nodes_reached_fully': 'nodes fully reached\t\t',
-		'nodes_reached_fully_wow': 'fully reached wow\t\t\t ',
-		'nodes_reaching_all': 'nodes reaching all\t\t\t',
-		'nodes_reaching_all_wow': 'nodes reaching all wow\t\t',
-		'nodes_start': 'nodes starting\t\t\t',
-		'nodes_end': 'nodes ending\t\t\t\t',
-		'nodes_lonely': 'nodes lonely\t\t\t\t',
-		'nodes_reflexive': 'nodes reflexive\t\t\t',
-		}
-		
-		trans = {
 		'symmetric_min': 'minimal symmetry       ',
 		'symmetric': 'symmetric              ',
 		'reflexive': 'reflexive              ',
