@@ -17,15 +17,19 @@ print(closure_m['closure'])
 print("end")
 print()
 """
+
+"""
+	grpah
 m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
 g = Graph(binary=m, node_style='int')
 g.draw("files/m.svg", ext='svg')
 m = MatrixBinary(boolean=['010010', '001001', '010100', '010010', '000000', '100000'])
 g = Graph(binary=m, node_style='int')
 g.draw("files/m2.svg", ext='svg')
+"""
 
-
-m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '10010'])
+m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+print(m.str_report())
 
 m = MatrixBinary(boolean=['011010', '101000', '110100', '001010', '100100', '000000'])
 sym_min = MatrixBinary.is_symmetric_min(m)
@@ -51,7 +55,6 @@ print(r)
 
 """
 	test all closures
-"""
 n = 5
 for _ in range(10):
 	m = MatrixBinary(random=(n,n), level=200)
@@ -91,6 +94,7 @@ for _ in range(10):
 	print('closure_matrix == closure_slides', closure_matrix['closure'] == closure_slides['closure'], sep='\t')
 	print('closure_matrix == closure_slides_full', closure_matrix['closure'] == closure_slides_full['closure'], sep='\t')
 	print()
+"""
 
 """
 matrix1 = MatrixBinary(boolean=['010100','000100','010010','000001','001100','000000'])

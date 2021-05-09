@@ -1015,6 +1015,33 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 			+ "\n-------\n" \
 			+ "\n".join(MatrixBinary.get_int2str(n, self.dimM) for n in self.matrixN)
 	
+	def str_report(self) -> str:
+		""" Return a string of report() content
+		
+			See MatrixBinary.report()
+		
+		>>> m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> print(m.str_report())
+		matrix: ['010010', '001000', '010100', '010010', '000000', '000000']
+		reflexive               False
+		symmetric               False
+		minimal symmetry        False
+		"""
+		trans = {
+		'symmetric_min': 'minimal symmetry       ',
+		'symmetric': 'symmetric              ',
+		'reflexive': 'reflexive              ',
+		}
+		
+		data = self.report()
+		report = f"matrix: {data.pop('matrix')}"
+		
+		data = sorted(data.items())
+		for k, v in data:
+			report += f"\n{trans[k]} {v}"
+		
+		return report
+
 	def transposed(self) -> 'MatrixBinary':
 		""" Return the transpose of this matrix
 		Give the diagonal symmetry of matrix
