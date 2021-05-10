@@ -60,7 +60,7 @@ class Graph(object):
 
 	**Graph for the majority of examples** 
 	
-	.. IMAGE:: files/graph_draw2.png
+	.. IMAGE:: files/graph_draw2.svg
 	
 	"""
 	node_style = 'str'
@@ -332,36 +332,36 @@ class Graph(object):
 		**example 1**
 		
 			>>> g = Graph(nodes=['a','bb','c','d','e'], edges=('a-d','d-a','d-c','c-a','bb-c','bb-bb'))
-			>>> g.draw("docs/src/files/graph_draw.png")
+			>>> g.draw("docs/src/files/graph_draw.svg", ext="svg")
 			
-		.. IMAGE:: files/graph_draw.png
+		.. IMAGE:: files/graph_draw.svg
 		
 		.list(self.viz.graph_attr.items())
 		
 		**example 2**
 		
 			>>> g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'])
-			>>> g.draw("docs/src/files/graph_draw2.png")
+			>>> g.draw("docs/src/files/graph_draw2.svg", ext="svg")
 			
-		.. IMAGE:: files/graph_draw2.png
+		.. IMAGE:: files/graph_draw2.svg
 		
 		.
 			
 		**example 3**
 		
 			>>> g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'], node_style='int')
-			>>> g.draw("docs/src/files/graph_draw3.png")
+			>>> g.draw("docs/src/files/graph_draw3.svg", ext="svg")
 			
-		.. IMAGE:: files/graph_draw3.png
+		.. IMAGE:: files/graph_draw3.svg
 		
 		.
 			
 		**example 4**
 		
 			>>> g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'], nodes=['α','β','γ','δ','ε','ζ'])
-			>>> g.draw("docs/src/files/graph_draw4.png")
+			>>> g.draw("docs/src/files/graph_draw4.svg", ext="svg")
 			
-		.. IMAGE:: files/graph_draw4.png
+		.. IMAGE:: files/graph_draw4.svg
 		
 		.
 		"""

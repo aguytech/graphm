@@ -70,7 +70,7 @@ class GraphPert(graphm.graph.Graph):
 
 	**Graph for the majority of examples** 
 	
-	.. IMAGE:: files/graph_draw2.png
+	.. IMAGE:: files/graph_draw2.svg
 	
 	"""
 	node_start = '>'

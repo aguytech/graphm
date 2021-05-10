@@ -52,7 +52,7 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		"""
 		super().__init__(**d)
 	
-	def __deepcopy__(self):
+	def __deepcopy__(self) -> 'MatrixBinary':
 		return MatrixBinary(matrices=(self.matrixM, self.matrixN))
 	
 	def __add__(self, matrix: object) -> 'MatrixBinary':
@@ -377,7 +377,7 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		return s.zfill(dim)
 
 	@staticmethod
-	def get_matrix_formated(matrix: 'MatrixBinary', style='int') -> list:
+	def get_matrix_formated(matrix: 'MatrixBinary', style='int') -> any:
 		""" Return the formated matrix passed in argument
 		
 		:param str style: style of export of closure
@@ -573,9 +573,7 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 	def paths_cycle(self, node_start:int, deep: int=0) -> dict:
 		""" Return a dictionary of paths of cycles found starting from node
 		
-		.. IMPORTANT:: by default returns all cycles presents in graph
-			To have  only found cycles until the transitive closure are reached,
-			put 'shortest' option to True
+		.. IMPORTANT:: You can limit the deep (rank) of searching by give deep in argument
 		
 		:param int node_start: the starting node to search paths
 		:param int deep: limit of rank from starting node to find paths of cycles
@@ -638,9 +636,7 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 	def paths_from(self, node_start:int, deep: int=0) -> dict:
 		""" Return a dictionary of all paths starting from node
 		
-		.. IMPORTANT:: by default returns all paths presents in the graph
-			To have  only found cycles until the transitive closure are reached,
-			put 'shortest' option to True
+		.. IMPORTANT:: You can limit the deep (rank) of searching by give deep in argument
 		
 		:param int node_start: the starting node to search paths
 		:param int deep: limit of rank from starting node to find paths of cycles
@@ -708,12 +704,10 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 			'deep': deep,
 			}
 	
-	def paths_from_to(self, node_start: int, node_end: int, deep: int=0) -> list:
+	def paths_from_to(self, node_start: int, node_end: int, deep: int=0) -> dict:
 		""" Return a dictionary of all paths starting from node 'node_start' to 'node_end'
 		
-		.. IMPORTANT:: by default returns all paths presents in the graph
-			To have  only found cycles until the transitive closure are reached,
-			put 'shortest' option to True
+		.. IMPORTANT:: You can limit the deep (rank) of searching by give deep in argument
 		
 		:param int node_start: the starting node
 		:param int node_end: the ending node
@@ -1002,7 +996,7 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		self.matrixN = [i  for i in matrix]
 		self._set_dim(dim, dim)
 
-	def str(self):
+	def str(self) -> str:
 		""" Return a representation on 2 dimensions of 2 matrices.
 		the original one and its transposed
 		

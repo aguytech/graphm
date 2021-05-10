@@ -32,18 +32,24 @@ class MatrixBinaryClosure(object):
 		:closure_matrix():
 			
 			:matrix: MatrixBinary: original matrix
-			:matrices: MatrixBinary: intermediate matrices
 			:closure: MatrixBinary closure: transitive closure
 			:reflexive: bool: if matrix is reflexive
 			:deep: int deep: deep rank of closure
+			
+			not used:
+			
+			:matrices: MatrixBinary: intermediate matrices
 			
 		:closure_slides(): (MatrixBinary, deep, list(matrixM))
 			
 			:matrix: MatrixBinary: original matrix
-			:matrices: list: intermediate matrices in matrixM
 			:closure: MatrixBinary closure: transitive closure
 			:reflexive: bool: if matrix is reflexive
 			:deep: int deep: deep rank of closure
+			
+			not used:
+			
+			:matrices: list: intermediate matrices in matrixM
 		 
 	.. CAUTION:: Instance variables
 	
@@ -64,7 +70,7 @@ class MatrixBinaryClosure(object):
 	"""
 
 	def __init__(self, d) -> 'MatrixBinaryClosure':
-		""" Set closure and properties from following methods of MatrixBinary:
+		""" Set closure and properties
 		
 		:param dict d: options to specify the type of matrix
 		
@@ -76,7 +82,6 @@ class MatrixBinaryClosure(object):
 			
 			optional indexes:
 			
-			:matrices: list: intermediate matrices (MatrixBinary or matrix)
 			:deep: int deep: deep rank of closure
 			:operations: int: number of operations
 		"""
@@ -177,7 +182,7 @@ class MatrixBinaryClosure(object):
 			'nodes_connected_not': nodes_connected_not,
 			}
 	
-	def get_closure(self, style='int'):
+	def get_closure(self, style='int') -> 'MatrixBinary':
 		""" Return the formated matrix of transitive closure
 		
 		:param str style: style of export of closure

@@ -16,6 +16,14 @@ print('m matrixM', m.matrixM)
 #g = GraphM(binary=m.matrixM)
 #g.draw("files/mbs.png", nodes_style='int')
 
+m = MatrixBinary(boolean=['00001', '00100', '00010', '00000', '01001'])
+mc = m.closure_slides()
+mbs = MatrixBinarySlides(mc)
+print(mbs)
+
+mc = m.closure_matrix()
+mbs = MatrixBinarySlides(mc)
+print(mbs)
 
 mcs = m.closure_slides()
 #print('mc = ', len(mc), '\n', mc)
@@ -31,33 +39,6 @@ print('report'), print(mbs.str_report())
 
 ns = 0
 ne= 5
-
-"""
-"""
-d_from = mbs.paths_from(ns, shortest=True)
-print('-------------------------', f'paths_from {ns}', sep='\n')
-for i, v in d_from.items():
-	print(i, '\t\t', len(v), '\n', v)
-
-d_from = mbs.paths_cycle(ns, shortest=True)
-print('-------------------------', f'paths_cycle {ns}', sep='\n')
-for i, v in d_from.items():
-	print(i, '\t\t', len(v), '\n', v)
-
-""""
-"""
-d_from = mbs.paths_from_to(ns, ne, shortest=True)
-print('-------------------------', f'paths_from_to {ns}', sep='\n')
-for i, v in d_from.items():
-	if i in ('reached', 'count'): print(i, '\t\t', v)
-	else: print(i, '\t\t', len(v) if i != 'reached' else '', '\n', v)
-print("end")
-
-d_from = mbs.paths_from_to(ns, ne, shortest=True)
-print('-------------------------', f'paths_from_to {ns}', sep='\n')
-for i, v in d_from.items():
-	if i in ('reached', 'count'): print(i, '\t\t', v)
-	else: print(i, '\t\t', len(v), '\n', v)
 
 
 """

@@ -12,8 +12,10 @@ m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000
 g = Graph(binary=m, node_style='int')
 g.draw("files/test_binaryclosure-2.svg", ext='svg')
 
-mbc = MatrixBinaryClosure(m.closure_reflexive())
-mbc = MatrixBinaryClosure(m.closure_slides())
+mc = m.closure_reflexive()
+mbc = MatrixBinaryClosure(mc)
+mc = m.closure_slides()
+mbc = MatrixBinaryClosure(mc)
 
 formated = MatrixBinary.get_matrix_formated(mbc.closure)
 
