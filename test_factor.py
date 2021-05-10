@@ -17,7 +17,7 @@ for i in range(2, m):
 	ops_h = f_h.operations()
 	ops_s = f_s.operations()
 	binary = bin(i)[2:]
-	print(i, f.number.bit_length(), f_h.number.bit_length(), f_s.number.bit_length(), i, ops, ops_h, ops_s, i, binary, bin(i)[2:], bin(f.number)[2:], sep=',')
+	print(i, f.exponent.bit_length(), f_h.exponent.bit_length(), f_s.exponent.bit_length(), i, ops, ops_h, ops_s, i, binary, bin(i)[2:], bin(f.exponent)[2:], sep=',')
 
 """
 	tests on matrix
@@ -40,7 +40,7 @@ for f in range(100, 1100, 100):
 	print('-------------- factor')
 	factor = Factor(f)
 	print('factor:', factor)
-	result, count = factor.calculate(mi)
+	result, count = factor.power(mi)
 	print('result:', result)
 	print('operations:', count)
 	
@@ -54,13 +54,14 @@ print('end')
 
 """
 	tests on numbers
+"""
 
 n = 2
 for f in (0, 242, 1024, 1023, 65536, 65535):
 	factor = Factor(f)
 	print(f)
 	print(factor)
-	result, count = factor.calculate(n)
+	result, count = factor.power(n)
 	print(result)
 	print(count)
 	print(result == n**f)
@@ -79,10 +80,10 @@ print(n ,f)
 n = 0
 f = Factor(n)
 print(n ,f)
-"""
 
 """
 test on the gap between 2** et 2**2**i
+"""
 import math
 base = 4
 l = [2**i for i in range(base,12)]
@@ -92,26 +93,6 @@ for i in l:
 l = [2**i for i in range(12)]
 for i in l:
 	print(int(math.log2(i)), i.bit_length())
-
-c = 0
-lc = {}
-n = 16
-while n < max:
-	c += 1
-	n += n
-	lc[c] = (n, n//exp, int(math.log(n//exp, 2)))
-
-print(lc)
-
-c = 0
-lc = {}
-n = 16
-while n < max:
-	c += 1
-	n += n
-	lc[c] = (n, n//exp)
-
-print(lc)
 
 m = 8
 i2 = [2**i for i in range(m)]
@@ -127,46 +108,45 @@ for i in range(len(i22)):
 	lc[i22[i]] = c
 
 print(lc)
-"""
 
 """
-number = 242
-f = Factor(number)
-result, count = f.calculate(2)
-print(result, count)
-result, count = f.calculate(3)
-print(result, count)
 """
+exponent = 242
+f = Factor(exponent)
+result, count = f.power(2)
+print(result, count)
+result, count = f.power(3)
+print(result, count)
 
+"""
 """
 n = 1023
 n = 242
 f = Factor(n)
 print(n ,f)
 #f.str_factor()
-r = f.calculate(2)
+r = f.power(2)
 print(n ,r)
 
 l = [{2: [{1}]}, {1: [{0}]}, {0: [{0}]}]
-number = 212
-print('number', number)
-exponents = Factor.get_exponents(number)
+exponent = 212
+print('exponent', exponent)
+exponents = Factor.get_exponentsof2(exponent)
 print('exponents', exponents)
 elementaries = Factor.get_elementaries(exponents)
 print('elementaries', elementaries)
-factor = Factor.get_factor(elementaries)
+factor = Factor.get_factorization(elementaries)
 print('factor', factor)
 
 print()
-number = 11
-print('number', number)
-exponents = Factor.get_exponents(number)
+exponent = 11
+print('exponent', exponent)
+exponents = Factor.get_exponentsof2(exponent)
 print('exponents', exponents)
 elementaries = Factor.get_elementaries(exponents)
 print('elementaries', elementaries)
-factor = Factor.get_factor(elementaries)
+factor = Factor.get_factorization(elementaries)
 print('factor', factor)
-"""
 
 """
 import datetime
