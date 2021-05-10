@@ -22,6 +22,9 @@ g.draw(f"{file}.png", label='test', nodes_style='int')
 g2.draw(f"{file}-2.png", label='test2')
 g3.draw(f"{file}-3.png", label='test3', fontsize="14")
 
+g = graphm.GraphM(boolean=['00010', '01100', '10000', '10100', '00000'], nodes='a,b,c,d,e,f,g,h,i,j', node_style='int', graph_attr = {'label' : 'graph', 'directed' : True})
+g.draw(f"graph2.png", label='graph2.png')
+
 print("m", m)
 print(g.viz.string())
 print(g2.viz.string())

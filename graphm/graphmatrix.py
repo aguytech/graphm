@@ -109,7 +109,11 @@ class GraphM:
 		matrix 
 		nodes 
 		
+		>>> g = GraphM(boolean=['01001', '00100', '01010', '00001', '01010'], node_style='int')
+		>>> g.draw("docs/src/files/graph1.png")
+		
 		>>> g = GraphM(boolean=['00010', '01100', '10000', '10100', '00000'], nodes='a,b,c,d,e,f,g,h,i,j', node_style='int')
+		>>> g.draw("docs/src/files/graph2.png")
 		>>> print(g)
 		dim 5
 		matrix [[0, 0, 0, 1, 0], [0, 1, 1, 0, 0], [1, 0, 0, 0, 0], [1, 0, 1, 0, 0], [0, 0, 0, 0, 0]]
