@@ -37,8 +37,10 @@ m.matrixM = MatrixBinary.get_matrixX_desunited(m.matrixM, m.dimN)
 m = MatrixBinary(nodes_edges=(['A','B','C','D','E'], ('A-D','D-A','D-C','C-A','B-C','B-B')))
 r = m.report()
 
+print('---------------------------------------------------------------')
 m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
 print(m.str_report())
+print('---------------------------------------------------------------')
 
 m = MatrixBinary(boolean=['011010', '101000', '110100', '001010', '100100', '000000'])
 sym_min = MatrixBinary.is_symmetric_pre(m)

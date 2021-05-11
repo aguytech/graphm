@@ -9,7 +9,7 @@ mbc = MatrixBinaryClosure(m.closure_slides())
 connected = mbc.is_connected()
 connected = mbc.is_connected_fully()
 cycle = mbc.nodes_connected()
-tree = mbc.is_tree()
+tree = mbc.is_matrix_tree()
 
 m =  MatrixBinary(boolean=['010010', '001000', '010101', '010010', '000000', '000000'])
 mbc = MatrixBinaryClosure(m.closure_slides())

@@ -661,9 +661,9 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 	@staticmethod
 	def is_symmetric_pre(matrix: 'MatrixBinary') -> bool:
 		""" returns True if the matrix has minimal symmetry with predecessor
-		at least one back edge for each edge
+		one back edge for each edge
 		
-		.. IMPORTANT:: return True if each edge has at least one edge back
+		.. IMPORTANT:: return True if each edge has one edge back
 		
 		:param MatrixBinary matrix: matrix of graph
 		
@@ -694,9 +694,9 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 	@staticmethod
 	def is_symmetric_suc(matrix: 'MatrixBinary') -> bool:
 		""" returns True if the matrix has minimal symmetry with successor
-		at least one edge for each back edge
+		one edge for each back edge
 		
-		.. IMPORTANT:: return True if each back edge has at least one edge
+		.. IMPORTANT:: return True if each back edge has one edge
 		
 		:param MatrixBinary matrix: matrix of graph
 		
@@ -957,10 +957,10 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 			:matrix: (list) original matrix in format 'str'
 			:closure: (list) transitive closure in format 'str'
 
-			:symmetric: (bool) if true graph is symmetric
-			:symmetric_pre: (bool) if true matrix has minimal symmetry with predecessor (each edge has at least a back edge)
-			:symmetric_suc: (bool) if true matrix has minimal symmetry with successor (each back edge has at least an edge)
 			:reflexive: (bool) if true graph is reflexive
+			:symmetric: (bool) if true graph is symmetric
+			:symmetric_pre: (bool) if true matrix has minimal symmetry with predecessor (each edge has a back edge)
+			:symmetric_suc: (bool) if true matrix has minimal symmetry with successor (each back edge has an edge)
 			
 		:return: a report of matrix properties
 		:rtype: dict
