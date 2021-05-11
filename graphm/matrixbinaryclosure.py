@@ -157,7 +157,7 @@ class MatrixBinaryClosure(object):
 		>>> mbc.connectivity()
 		{'graph_connected_fully': False, 'nodes_lonely': {5}, 'nodes_start': {0, 5}, 'nodes_end': {4, 5}, 'nodes_connected': [{1, 2, 3}], 'nodes_connected_not': {0, 4}}
 		"""
-		graph_connected_fully = self.is_connected_fully()
+		connected_fully = self.is_connected_fully()
 		nodes_lonely = self.nodes_lonely()
 		nodes_start = self.nodes_start()
 		nodes_end = self.nodes_end()
@@ -172,9 +172,10 @@ class MatrixBinaryClosure(object):
 		connected_set = set(connected)
 		# set of connected nodes
 		nodes_connected = [{i for i in range(self.dim) if line[i] == '1'} for line in connected_set]
+		nodes_connected = [i for i in nodes_connected if len(i) > 1]
 		
 		return {
-			'graph_connected_fully': graph_connected_fully,
+			'graph_connected_fully': connected_fully,
 			'nodes_lonely': nodes_lonely,
 			'nodes_start': nodes_start,
 			'nodes_end': nodes_end,
@@ -246,6 +247,35 @@ class MatrixBinaryClosure(object):
 		s = bin(line)[2:]
 		return s.zfill(self.dim)
 
+	def is_connected(self) -> bool:
+		""" Return true if the graph is connected
+		
+		at least 2 defintions:
+		
+			* with a reflexive closure, at least one node reaching all nodes
+			* with a non reflexive closure, at least one node reaching all others nodes
+			* each node are reached by at least one node which is possibly a starting node
+		
+		:return: true if the graph is connected
+		:rtype: bool
+		
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_slides())
+		>>> mbc.is_connected()
+		False
+		
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010101', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_slides())
+		>>> mbc.is_connected()
+		True
+		"""
+		full = 2**self.dim - 1
+		closureMU = MatrixBinary.get_matrixX_united(self.closureM, self.dim)
+		for m in closureMU:
+			if m == full:
+				return True
+		return False
+	
 	def is_connected_fully(self) -> bool:
 		""" Return true if the graph is fully connected
 		
@@ -254,15 +284,42 @@ class MatrixBinaryClosure(object):
 		
 		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
 		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
-		
-		>>> mbc. is_connected_fully()
+		>>> mbc.is_connected_fully()
 		False
+		
+		>>> m =  MatrixBinary(boolean=['010010', '001001', '010100', '010010', '000100', '100000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
+		>>> mbc.is_connected_fully()
+		True
 		"""
 		full = 2**self.dim - 1
 		for m in self.closureM:
 			if m != full:
 				return False
 		return True
+	
+	def is_tree(self) -> bool:
+		""" Return True if the graph is a tree
+		
+		:return: True if the graph is a tree
+		:rtype: bool
+		
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_slides())
+		>>> mbc.is_tree()
+		False
+		
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '000101', '000010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_slides())
+		>>> mbc.is_tree()
+		False
+		
+		>>> m =  MatrixBinary(boolean=['010000', '001000', '000101', '000010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_slides())
+		>>> mbc.is_tree()
+		True
+		"""
+		return self.is_connected() and MatrixBinary.get_edges_count(self.matrix) == (self.dim - 1)
 	
 	def nodes_ancestors(self, node:int) -> set:
 		""" Return a set nodes that reach the given node
@@ -290,6 +347,36 @@ class MatrixBinaryClosure(object):
 		set()
 		"""
 		return {i for i in range(self.dim) if self.closureNS[node][i] == '1'}
+	
+	def nodes_connected(self) -> list:
+		""" Return sets of connected nodes
+		
+		:return: sets of connected nodes
+		:rtype: list
+		
+		>>> m = MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
+		>>> mbc = MatrixBinaryClosure(m.closure_matrix())
+		>>> mbc.nodes_connected()
+		[{1, 2, 3, 4}]
+	
+		>>> m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> mbc = MatrixBinaryClosure(m.closure_matrix())
+		>>> mbc.nodes_connected()
+		[{1, 2, 3}]
+		"""
+		nodes_lonely = self.nodes_lonely()
+		
+		# logical 'and' between successors & ancestors
+		matrix_reflexive = [self.closureM[i] & self.closureN[i] for i in range(self.dim) if i not in nodes_lonely]
+		# list of connected nodes in string line format
+		connected = [self.int2str(line) for line in matrix_reflexive if line != 0]
+		# keep unique combinations
+		connected_set = set(connected)
+		# set of connected nodes
+		nodes_connected = [{i for i in range(self.dim) if line[i] == '1'} for line in connected_set]
+		nodes_connected = [i for i in nodes_connected if len(i) > 1]
+		
+		return nodes_connected
 	
 	def nodes_end(self) -> set:
 		""" Return a set of ending nodes, with no successors
@@ -523,10 +610,14 @@ class MatrixBinaryClosure(object):
 			:matrix: (list) original matrix in format 'str'
 			:closure: (list) transitive closure in format 'str'
 
-			:symmetric_min: (bool) if true graph has a minimal symmetry (each edge has a reverse edge)
-			:symmetric: (bool) if true graph is symmetric
-			:reflexive: (bool) if true graph is reflexive
 			:connected_fully: (bool) if true graph is fully connected
+			:reflexive: (bool) if true graph is reflexive
+			:symmetric: (bool) if true graph is symmetric
+			:symmetric_pre: (bool) if True the matrix has minimal symmetry with predecessor (each edge has a back edge)
+			:symmetric_suc: (bool) if True the matrix has minimal symmetry with sucessor (each back edge has a edge)
+			:tree: (bool) if True the graph is a tree
+
+			:nodes_connected: (set) groups of connected nodes
 			:nodes_reached_fully: (set) nodes reached by all nodes, even itself
 			:nodes_reached_fully_wow: (set) nodes reached by all others, with or without itself 
 			:nodes_reaching_all: (set) nodes reaching all nodes, even itself
@@ -554,7 +645,7 @@ class MatrixBinaryClosure(object):
 		000000
 
 		>>> print(mbc.report())
-		{'symmetric_min': False, 'symmetric': False, 'reflexive': False, 'connected_fully': False, 'nodes_reached_fully': set(), 'nodes_reached_fully_wow': set(), 'nodes_reaching_all': set(), 'nodes_reaching_all_wow': set(), 'nodes_start': {0, 5}, 'nodes_end': {4, 5}, 'nodes_lonely': {5}, 'nodes_reflexive': {1, 2, 3}, 'matrix': ['010010', '001000', '010100', '010010', '000000', '000000'], 'closure': ['011110', '011110', '011110', '011110', '000000', '000000']}
+		{'symmetric': False, 'symmetric_pre': False, 'symmetric_suc': True, 'reflexive': False, 'connected_fully': False, 'nodes_reached_fully': set(), 'nodes_reached_fully_wow': set(), 'nodes_reaching_all': set(), 'nodes_reaching_all_wow': set(), 'nodes_start': {0, 5}, 'nodes_end': {4, 5}, 'nodes_lonely': {5}, 'nodes_reflexive': {1, 2, 3}, 'matrix': ['010010', '001000', '010100', '010010', '000000', '000000'], 'closure': ['011110', '011110', '011110', '011110', '000000', '000000']}
 
 		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
 		>>> print(mbc)
@@ -567,11 +658,12 @@ class MatrixBinaryClosure(object):
 		000001
 
 		>>> print(mbc.report())
-		{'symmetric_min': False, 'symmetric': False, 'reflexive': True, 'connected_fully': False, 'nodes_reached_fully': set(), 'nodes_reached_fully_wow': set(), 'nodes_reaching_all': set(), 'nodes_reaching_all_wow': set(), 'nodes_start': set(), 'nodes_end': set(), 'nodes_lonely': set(), 'nodes_reflexive': {0, 1, 2, 3, 4, 5}, 'matrix': ['010010', '001000', '010100', '010010', '000000', '000000'], 'closure': ['111110', '011110', '011110', '011110', '000010', '000001']}
+		{'symmetric': False, 'symmetric_pre': False, 'symmetric_suc': True, 'reflexive': True, 'connected_fully': False, 'nodes_reached_fully': set(), 'nodes_reached_fully_wow': set(), 'nodes_reaching_all': set(), 'nodes_reaching_all_wow': set(), 'nodes_start': set(), 'nodes_end': set(), 'nodes_lonely': set(), 'nodes_reflexive': {0, 1, 2, 3, 4, 5}, 'matrix': ['010010', '001000', '010100', '010010', '000000', '000000'], 'closure': ['111110', '011110', '011110', '011110', '000010', '000001']}
 		"""
 		report = {
-			'symmetric_min': MatrixBinary.is_symmetric_min(self.closure),
 			'symmetric': MatrixBinary.is_symmetric(self.closure),
+			'symmetric_pre': MatrixBinary.is_symmetric_pre(self.closure),
+			'symmetric_suc': MatrixBinary.is_symmetric_suc(self.closure),
 			'reflexive': MatrixBinary.is_reflexive(self.closure),
 			'connected_fully': self.is_connected_fully(),
 			'nodes_reached_fully': self.nodes_reached_fully(),
@@ -670,11 +762,13 @@ class MatrixBinaryClosure(object):
 		nodes starting          {0, 5}
 		reflexive               False
 		symmetric               False
-		minimal symmetry        False
+		symmetry predecessor    False
+		symmetry successor      True
 		"""
 		trans = {
-		'symmetric_min': 'minimal symmetry       ',
 		'symmetric': 'symmetric              ',
+		'symmetric_pre': 'symmetry predecessor   ',
+		'symmetric_suc': 'symmetry successor     ',
 		'reflexive': 'reflexive              ',
 		'connected_fully': 'fully connected        ',
 		'nodes_reached_fully': 'nodes fully reached    ',
