@@ -4,6 +4,8 @@ Created on Apr 26, 2021
 @author: salem Aguemoun
 '''
 import pygraphviz
+import graphm.matrixbinary
+MatrixBinary = graphm.matrixbinary.MatrixBinary
 
 class GraphM(object):
 	""" Manage graph with matrix:
@@ -377,8 +379,7 @@ class GraphM(object):
 		>>> g.int2str(7)
 		'0111'
 		"""
-		s = bin(line)[2:]
-		return s.zfill(self.dim)
+		return MatrixBinary.get_int2str(line, self.dim)
 
 	def set_from_binary(self, binary: iter, **d) -> None:
 		""" Set boolean matrix from binary matrix and nodes if given

@@ -441,23 +441,6 @@ class Graph(object):
 			attr_viz = getattr(self.viz, attr_name)
 			attr_viz.update(attr)
 
-	@staticmethod
-	def get_int2str(line: int, dim: int) -> str:
-		""" Return string value of converted binary, string length is adjusted by to dim
-	
-		:param int line: line of boolean in integer representation
-		:param int dim: dimension of line
-		
-		:return: string of booleans
-		:rtype: str
-
-		>>> g = Graph(binary=[1, 3, 8, 0])
-		>>> Graph.get_int2str(7, 4)
-		'0111'
-		"""
-		s = bin(line)[2:]
-		return s.zfill(dim)
-
 	def reset_edges(self, **d) -> None:
 		""" remove all edges in viz
 		"""
@@ -515,7 +498,7 @@ class Graph(object):
 		self.set_nodes(dim=dim, cut=True, **d)
 		nodes = self.viz.nodes()
 
-		matrixS = [Graph.get_int2str(line, dim) for line in matrix]
+		matrixS = [MatrixBinary.get_int2str(line, dim) for line in matrix]
 		edges = [(nodes[m], nodes[n]) for m in range(dim) for n in range(dim) if matrixS[m][n] == '1']
 		
 		self.set_edges(edges=edges)

@@ -241,11 +241,12 @@ class MatrixBinaryClosure(object):
 		:return: boolean strings
 		:rtype: str
 
-		>>> MatrixBinary.get_int2str(36, 10)
-		'0000100100'
+		>>> m = MatrixBinary(boolean=['00001', '00100', '00010', '00000', '01001'])
+		>>> mbc = MatrixBinaryClosure(m.closure_slides())
+		>>> mbc.int2str(12)
+		'01100'
 		"""
-		s = bin(line)[2:]
-		return s.zfill(self.dim)
+		return MatrixBinary.get_int2str(line, self.dim)
 
 	def is_connected(self) -> bool:
 		""" Return true if the graph is connected
