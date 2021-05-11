@@ -47,7 +47,7 @@ class AMatrix(object):
 		:rtype: object
 		"""
 		# call the good method to initialize object
-		for attr in ('matrix', 'matrices', 'boolean', 'empty', 'random', 'unit'):
+		for attr in ('matrix', 'matrices', 'boolean', 'empty', 'nodes_edges', 'random', 'unit'):
 			if attr in d:
 				self._call_init(f"set_from_{attr}", **d)
 				break

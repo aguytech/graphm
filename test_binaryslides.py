@@ -37,17 +37,13 @@ print('report'), print(mbs.str_report())
 #print('m', len(m), '\n', m)
 #print('successors', mbs.successors)
 
-ns = 0
-ne= 5
-
-
 """
 """
-nodes_connected = {}
+n = 10
 c = 0
 l = 0
-while l < 3 and c < 20:
-	m = MatrixBinary(random=(n, n))
+while l < 3 and c < 200:
+	m = MatrixBinary(random=(n, n), level=100)
 	mbs = MatrixBinarySlides(m.closure_slides())
 	dc = mbs.connectivity()
 	l = len(dc['nodes_connected'])

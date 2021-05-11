@@ -19,7 +19,7 @@ print()
 """
 
 """
-	grpah
+	graph
 m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
 g = Graph(binary=m, node_style='int')
 g.draw("files/m.svg", ext='svg')
@@ -29,15 +29,24 @@ g.draw("files/m2.svg", ext='svg')
 """
 
 m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+m.matrixM = MatrixBinary.get_matrixX_united(m.matrixM, m.dimN)
+m = MatrixBinary(boolean=['110010', '011000', '011100', '010110', '000010', '000001'])
+m.matrixM = MatrixBinary.get_matrixX_desunited(m.matrixM, m.dimN)
+		
+		
+m = MatrixBinary(nodes_edges=(['A','B','C','D','E'], ('A-D','D-A','D-C','C-A','B-C','B-B')))
+r = m.report()
+
+m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
 print(m.str_report())
 
 m = MatrixBinary(boolean=['011010', '101000', '110100', '001010', '100100', '000000'])
-sym_min = MatrixBinary.is_symmetric_min(m)
+sym_min = MatrixBinary.is_symmetric_pre(m)
 sym = MatrixBinary.is_symmetric(m)
 reflexive = MatrixBinary.is_reflexive(m)
 
 m = MatrixBinary(boolean=['010010', '101000', '110100', '001010', '100100', '000000'])
-sym_min = MatrixBinary.is_symmetric_min(m)
+sym_min = MatrixBinary.is_symmetric_pre(m)
 sym = MatrixBinary.is_symmetric(m)
 reflexive = MatrixBinary.is_reflexive(m)
 

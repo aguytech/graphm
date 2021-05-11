@@ -358,11 +358,31 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		return self.__deepcopy__()
 		
 	@staticmethod
+	def get_edges_count(matrix: 'MatrixBinary') -> int:
+		""" Give the number of edges in matrix
+		
+		:return: the number of edges in matrix
+		:rtype: int
+		
+		>>> m =  MatrixBinary(boolean=['000', '000', '000'])
+		>>> MatrixBinary.get_edges_count(m)
+		0
+		
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010101', '010010', '000000', '000000'])
+		>>> MatrixBinary.get_edges_count(m)
+		8
+		"""
+		matrixMS = [MatrixBinary.get_int2str(line, matrix.dimN ) for line in matrix.matrixM]
+		return len([i for line in matrixMS for i in line if i == '1'])
+		
+	@staticmethod
 	def get_int2str(line: int, dim: int) -> str:
 		""" Return the converted  boolean string from binary integer,
 		string length is adjusted by to dim.
 		
 		dim is the dimension of line
+		
+		.. WARNING :: Use dimN for matrixM & dimM for matrixN
 		
 		:param int line: line of boolean in integer representation
 		:param int dim: number of nodes
@@ -407,12 +427,66 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 			return matrix.matrixM[:]
 	
 	@staticmethod
-	def get_matrix_united(matrix : 'MatrixBinary') -> 'MatrixBinary':
-		""" Return matrix added of unit matrix
+	def get_matrix_desunited(matrix : 'MatrixBinary') -> 'MatrixBinary':
+		""" Returns the MatrixBinary matrix to which the unit matrix has been added
 		:param MatrixBinary matrix: 
 		
-		:return: matrix added of unit matrix
+		:return: returns the matrix plus the unit matrix
 		:rtype: MatrixBinary
+
+		>>> m = MatrixBinary.get_matrix_desunited(MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000']))
+		>>> print(m)
+		dim 6,6
+		010010
+		001000
+		010100
+		010010
+		000000
+		000000
+		
+		>>> m = MatrixBinary.get_matrix_desunited(MatrixBinary(boolean=['110010', '011000', '011100', '010110', '000010', '000001']))
+		>>> print(m)
+		dim 6,6
+		010010
+		001000
+		010100
+		010010
+		000000
+		000000
+		"""
+		desunit = [2**(matrix.dimM) - 2**i -1 for i in range(matrix.dimM-1,-1,-1)]
+		matrix = matrix.copy()
+		matrix.matrixM = [matrix.matrixM[i] & desunit[i] for i in range(matrix.dimM)]
+		matrix.matrixN = [matrix.matrixN[i] & desunit[i] for i in range(matrix.dimN)]
+		return matrix
+
+	@staticmethod
+	def get_matrix_united(matrix : 'MatrixBinary') -> 'MatrixBinary':
+		""" Returns the MatrixBinary matrix to which the unit matrix has been added
+		:param MatrixBinary matrix: 
+		
+		:return: returns the matrix plus the unit matrix
+		:rtype: MatrixBinary
+
+		>>> m = MatrixBinary.get_matrix_united(MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000']))
+		>>> print(m)
+		dim 6,6
+		110010
+		011000
+		011100
+		010110
+		000010
+		000001
+		
+		>>> m = MatrixBinary.get_matrix_united(MatrixBinary(boolean=['110010', '011000', '011100', '010110', '000010', '000001']))
+		>>> print(m)
+		dim 6,6
+		110010
+		011000
+		011100
+		010110
+		000010
+		000001
 		"""
 		unit = [2**i for i in range(matrix.dimM-1, -1, -1)]
 		matrix = matrix.copy()
@@ -421,12 +495,73 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		return matrix
 
 	@staticmethod
-	def get_matrixX_united(matrixX: list, dimX: int) -> list:
-		""" Return respectively matrixX (M or N) added of unit matrix
+	def get_matrixX_desunited(matrixX: list, dimX: int) -> list:
+		""" Returns the single matrix (M or N) to which the unit matrix has been added
+		
+		.. WARNING :: for matrixM use dimN and for matrixN use dimM
 		
 		:param list matrixX: matrixM or matrixN
-		:return: matrixX (M or N) added of unit matrix
+		
+		:return: returns the matrix matrixX (M or N) plus the unit matrix
 		:rtype: list
+
+		>>> m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> m.matrixM = MatrixBinary.get_matrixX_desunited(m.matrixM, m.dimN)
+		>>> print(m)
+		dim 6,6
+		010010
+		001000
+		010100
+		010010
+		000000
+		000000
+		
+		>>> m = MatrixBinary(boolean=['110010', '011000', '011100', '010110', '000010', '000001'])
+		>>> m.matrixM = MatrixBinary.get_matrixX_desunited(m.matrixM, m.dimN)
+		>>> print(m)
+		dim 6,6
+		010010
+		001000
+		010100
+		010010
+		000000
+		000000
+		"""
+		desunit = [2**dimX - 2**i -1 for i in range(dimX-1,-1,-1)]
+		return [matrixX[i] & desunit[i] for i in range(dimX)]
+
+	@staticmethod
+	def get_matrixX_united(matrixX: list, dimX: int) -> list:
+		""" Returns the single matrix (M or N) to which the unit matrix has been added
+		
+		.. WARNING :: for matrixM use dimN and for matrixN use dimM
+		
+		:param list matrixX: matrixM or matrixN
+		
+		:return: returns the matrix matrixX (M or N) plus the unit matrix
+		:rtype: list
+
+		>>> m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> m.matrixM = MatrixBinary.get_matrixX_united(m.matrixM, m.dimN)
+		>>> print(m)
+		dim 6,6
+		110010
+		011000
+		011100
+		010110
+		000010
+		000001
+		
+		>>> m = MatrixBinary(boolean=['110010', '011000', '011100', '010110', '000010', '000001'])
+		>>> m.matrixM = MatrixBinary.get_matrixX_united(m.matrixM, m.dimN)
+		>>> print(m)
+		dim 6,6
+		110010
+		011000
+		011100
+		010110
+		000010
+		000001
 		"""
 		unit = [2**i for i in range(dimX - 1, -1, -1)]
 		return [matrixX[i] | unit[i] for i in range(dimX)]
@@ -524,27 +659,27 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		return True
 	
 	@staticmethod
-	def is_symmetric_min(matrix: 'MatrixBinary') -> bool:
-		""" returns True if the matrix has minimal symmetry
-		at least one return for each way
+	def is_symmetric_pre(matrix: 'MatrixBinary') -> bool:
+		""" returns True if the matrix has minimal symmetry with predecessor
+		at least one back edge for each edge
 		
 		.. IMPORTANT:: return True if each edge has at least one edge back
 		
 		:param MatrixBinary matrix: matrix of graph
 		
-		:return: True if the matrix has minimal symmetry
+		:return: True if the matrix has minimal symmetry with predecessor
 		:rtype: bool
 		
 		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
-		>>> MatrixBinary.is_symmetric_min(m)
+		>>> MatrixBinary.is_symmetric_pre(m)
 		False
 
 		>>> m = MatrixBinary(boolean=['011010', '101000', '110100', '101010', '100100', '101000'])
-		>>> MatrixBinary.is_symmetric_min(m)
+		>>> MatrixBinary.is_symmetric_pre(m)
 		True
 
 		>>> m = MatrixBinary(boolean=['011010', '101000', '110100', '001010', '100100', '000000'])
-		>>> MatrixBinary.is_symmetric_min(m)
+		>>> MatrixBinary.is_symmetric_pre(m)
 		True
 		"""
 		if matrix.dimM != matrix.dimN:
@@ -553,6 +688,39 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		for i in range(matrix.dimM):
 			mask = 2**(matrix.dimM-i)-1
 			if (matrix.matrixM[i] & mask) & (matrix.matrixN[i] & mask)  != (matrix.matrixM[i] & mask):
+				return False
+		return True
+	
+	@staticmethod
+	def is_symmetric_suc(matrix: 'MatrixBinary') -> bool:
+		""" returns True if the matrix has minimal symmetry with successor
+		at least one edge for each back edge
+		
+		.. IMPORTANT:: return True if each back edge has at least one edge
+		
+		:param MatrixBinary matrix: matrix of graph
+		
+		:return: True True if the matrix has minimal symmetry with successor
+		:rtype: bool
+		
+		>>> m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+		>>> MatrixBinary.is_symmetric_suc(m)
+		False
+
+		>>> m = MatrixBinary(boolean=['011011', '101011', '110100', '001010', '100100', '000000'])
+		>>> MatrixBinary.is_symmetric_suc(m)
+		True
+
+		>>> m = MatrixBinary(boolean=['011010', '101000', '110100', '001010', '100100', '000000'])
+		>>> MatrixBinary.is_symmetric_suc(m)
+		True
+		"""
+		if matrix.dimM != matrix.dimN:
+			return False
+		
+		for i in range(matrix.dimN):
+			mask = 2**(matrix.dimN-i)-1
+			if (matrix.matrixN[i] & mask) & (matrix.matrixM[i] & mask)  != (matrix.matrixN[i] & mask):
 				return False
 		return True
 	
@@ -789,8 +957,9 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 			:matrix: (list) original matrix in format 'str'
 			:closure: (list) transitive closure in format 'str'
 
-			:symmetric_min: (bool) if true graph has a minimal symmetry (each edge has a reverse edge)
 			:symmetric: (bool) if true graph is symmetric
+			:symmetric_pre: (bool) if true matrix has minimal symmetry with predecessor (each edge has at least a back edge)
+			:symmetric_suc: (bool) if true matrix has minimal symmetry with successor (each back edge has at least an edge)
 			:reflexive: (bool) if true graph is reflexive
 			
 		:return: a report of matrix properties
@@ -809,7 +978,7 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		000000
 
 		>>> print(m.report())
-		{'symmetric_min': False, 'symmetric': False, 'reflexive': False, 'matrix': ['010010', '001000', '010100', '010010', '000000', '000000']}
+		{'symmetric': False, 'symmetric_pre': False, 'symmetric_suc': False, 'reflexive': False, 'matrix': ['010010', '001000', '010100', '010010', '000000', '000000']}
 
 		.. IMAGE:: files/m2.svg
 
@@ -824,11 +993,12 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		100000
 
 		>>> print(m.report())
-		{'symmetric_min': False, 'symmetric': False, 'reflexive': False, 'matrix': ['010010', '001001', '010100', '010010', '000000', '100000']}
+		{'symmetric': False, 'symmetric_pre': False, 'symmetric_suc': False, 'reflexive': False, 'matrix': ['010010', '001001', '010100', '010010', '000000', '100000']}
 		"""
 		report = {
-			'symmetric_min': MatrixBinary.is_symmetric_min(self),
 			'symmetric': MatrixBinary.is_symmetric(self),
+			'symmetric_pre': MatrixBinary.is_symmetric_pre(self),
+			'symmetric_suc': MatrixBinary.is_symmetric_suc(self),
 			'reflexive': MatrixBinary.is_reflexive(self),
 			}
 		
@@ -924,6 +1094,108 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		self.dimM = len(self.matrixM)
 		self.dimN = len(self.matrixN)
 	
+	def set_from_nodes_edges(self, nodes_edges: tuple) -> None:
+		""" Set boolean matrix from nodes or edges
+		
+		.. NOTE:: if edges are given without nodes, the nodes are generate from edges automatically
+		
+		:param tuple nodes_edges: tuple(node, edges)
+		
+			:edges: (iter) edges in format 'in,out' or [in, out] or (in, out)
+			:nodes: (iter) names of nodes in iterable of strings
+
+		>>> m = MatrixBinary(nodes_edges=(['A','B','C','D','E'], ('A-D','D-A','D-C','C-A','B-C','B-B')))
+		>>> print(m)
+		dim 5,5
+		00010
+		01100
+		10000
+		10100
+		00000
+		
+		>>> m = MatrixBinary(nodes_edges=((),('A-D','D-A','D-C','C-A','B-C','B-B')))
+		>>> print(m)
+		dim 4,4
+		0001
+		0110
+		1000
+		1010
+				
+		>>> m = MatrixBinary(nodes_edges=(['A','B','C','D','E'],()))
+		>>> print(m)
+		dim 5,5
+		00000
+		00000
+		00000
+		00000
+		00000
+		"""
+		def convert_edges(edges: iter) -> list:
+			""" Convert edges to list of single elements
+			
+			:param list edges: edges of graph
+			
+			:return: edges in single elements
+			:rtype: list
+			"""
+			if not edges:
+				return []
+			
+			# str
+			if isinstance(edges, str):
+				edges = [(i, j) for i, j in edges.split(',')]
+			# iter(str)
+			elif isinstance(edges[0], str):
+					edges = [[i for i in edge.split('-')] for edge in edges]
+			# dict
+			elif isinstance(edges, dict):
+				edges = [(str(a), str(b)) for a, b in edges.items()]
+			else:
+				edges = [(str(a), str(b)) for a, b in edges]
+			
+			return edges
+	
+		def convert_nodes(nodes: iter) -> list:
+			""" Convert edges to list of single elements
+			
+			:param list edges: edges of graph
+			
+			:return: edges in single elements
+			:rtype: list
+			"""
+			if not nodes:
+				return []
+			
+			if isinstance(nodes, str):
+				nodes = nodes.split(',')
+			nodes = [str(i) for i in nodes]
+			
+			return nodes
+
+		nodes, edges = nodes_edges
+		
+		edges = convert_edges(edges)
+
+		nodes_edges = {node for edge in edges for node in edge} if edges else set()
+		if nodes:
+			nodes = list(nodes_edges | set(nodes))
+			nodes.sort()
+		else:
+			nodes = list(nodes_edges)
+			nodes.sort()
+		
+		# dim
+		self.dimM = len(nodes)
+		self.dimN = self.dimM
+		
+		# matrix
+		matrix = [['0' for _ in range(self.dimN)] for _ in range(self.dimM)]
+		nodes_rev = {node: i for i,node in enumerate(nodes)}
+		for edgeIn, edgeOut in edges:
+			matrix[nodes_rev[edgeIn]][nodes_rev[edgeOut]] = '1'
+		self.matrixM = [int('0b' + ''.join(line), 2) for line in matrix]
+		self.matrixM2N()
+
 	def set_from_random(self, random: tuple, level: int=200) -> None:
 		""" Set a matrix containing random booleans in integer representation
 		
@@ -1022,11 +1294,13 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		matrix: ['010010', '001000', '010100', '010010', '000000', '000000']
 		reflexive               False
 		symmetric               False
-		minimal symmetry        False
+		symmetry predecessor    False
+		symmetry successor      False
 		"""
 		trans = {
-		'symmetric_min': 'minimal symmetry       ',
 		'symmetric': 'symmetric              ',
+		'symmetric_pre': 'symmetry predecessor   ',
+		'symmetric_suc': 'symmetry successor     ',
 		'reflexive': 'reflexive              ',
 		}
 		
