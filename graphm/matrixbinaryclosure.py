@@ -611,6 +611,7 @@ class MatrixBinaryClosure(object):
 			:matrix: (list) original matrix in format 'str'
 			:closure: (list) transitive closure in format 'str'
 
+			:connected: (bool) if true graph is connected
 			:connected_fully: (bool) if true graph is fully connected
 			:reflexive: (bool) if true graph is reflexive
 			:symmetric: (bool) if true graph is symmetric
@@ -646,7 +647,7 @@ class MatrixBinaryClosure(object):
 		000000
 
 		>>> print(mbc.report())
-		{'symmetric': False, 'symmetric_pre': False, 'symmetric_suc': True, 'reflexive': False, 'connected_fully': False, 'nodes_reached_fully': set(), 'nodes_reached_fully_wow': set(), 'nodes_reaching_all': set(), 'nodes_reaching_all_wow': set(), 'nodes_start': {0, 5}, 'nodes_end': {4, 5}, 'nodes_lonely': {5}, 'nodes_reflexive': {1, 2, 3}, 'matrix': ['010010', '001000', '010100', '010010', '000000', '000000'], 'closure': ['011110', '011110', '011110', '011110', '000000', '000000']}
+		{'connected': False, 'connected_fully': False, 'reflexive': False, 'symmetric': False, 'symmetric_pre': False, 'symmetric_suc': True, 'tree': False, 'nodes_reached_fully': set(), 'nodes_reached_fully_wow': set(), 'nodes_reaching_all': set(), 'nodes_reaching_all_wow': set(), 'nodes_start': {0, 5}, 'nodes_end': {4, 5}, 'nodes_lonely': {5}, 'nodes_reflexive': {1, 2, 3}, 'matrix': ['010010', '001000', '010100', '010010', '000000', '000000'], 'closure': ['011110', '011110', '011110', '011110', '000000', '000000']}
 
 		>>> mbc = MatrixBinaryClosure(m.closure_reflexive())
 		>>> print(mbc)
@@ -659,14 +660,16 @@ class MatrixBinaryClosure(object):
 		000001
 
 		>>> print(mbc.report())
-		{'symmetric': False, 'symmetric_pre': False, 'symmetric_suc': True, 'reflexive': True, 'connected_fully': False, 'nodes_reached_fully': set(), 'nodes_reached_fully_wow': set(), 'nodes_reaching_all': set(), 'nodes_reaching_all_wow': set(), 'nodes_start': set(), 'nodes_end': set(), 'nodes_lonely': set(), 'nodes_reflexive': {0, 1, 2, 3, 4, 5}, 'matrix': ['010010', '001000', '010100', '010010', '000000', '000000'], 'closure': ['111110', '011110', '011110', '011110', '000010', '000001']}
+		{'connected': False, 'connected_fully': False, 'reflexive': True, 'symmetric': False, 'symmetric_pre': False, 'symmetric_suc': True, 'tree': False, 'nodes_reached_fully': set(), 'nodes_reached_fully_wow': set(), 'nodes_reaching_all': set(), 'nodes_reaching_all_wow': set(), 'nodes_start': set(), 'nodes_end': set(), 'nodes_lonely': set(), 'nodes_reflexive': {0, 1, 2, 3, 4, 5}, 'matrix': ['010010', '001000', '010100', '010010', '000000', '000000'], 'closure': ['111110', '011110', '011110', '011110', '000010', '000001']}
 		"""
 		report = {
+			'connected': self.is_connected(),
+			'connected_fully': self.is_connected_fully(),
+			'reflexive': MatrixBinary.is_reflexive(self.closure),
 			'symmetric': MatrixBinary.is_symmetric(self.closure),
 			'symmetric_pre': MatrixBinary.is_symmetric_pre(self.closure),
 			'symmetric_suc': MatrixBinary.is_symmetric_suc(self.closure),
-			'reflexive': MatrixBinary.is_reflexive(self.closure),
-			'connected_fully': self.is_connected_fully(),
+			'tree': self.is_tree(),
 			'nodes_reached_fully': self.nodes_reached_fully(),
 			'nodes_reached_fully_wow': self.nodes_reached_fully_wow(),
 			'nodes_reaching_all': self.nodes_reaching_all(),
@@ -752,6 +755,7 @@ class MatrixBinaryClosure(object):
 		>>> print(mbc.str_report())
 		matrix: ['010010', '001000', '010100', '010010', '000000', '000000']
 		closure: ['011110', '011110', '011110', '011110', '000000', '000000']
+		connected               False
 		fully connected         False
 		nodes ending            {4, 5}
 		nodes lonely            {5}
@@ -765,13 +769,16 @@ class MatrixBinaryClosure(object):
 		symmetric               False
 		symmetry predecessor    False
 		symmetry successor      True
+		tree                    False
 		"""
 		trans = {
+		'connected': 'connected              ',
+		'connected_fully': 'fully connected        ',
+		'reflexive': 'reflexive              ',
 		'symmetric': 'symmetric              ',
 		'symmetric_pre': 'symmetry predecessor   ',
 		'symmetric_suc': 'symmetry successor     ',
-		'reflexive': 'reflexive              ',
-		'connected_fully': 'fully connected        ',
+		'tree': 'tree                   ',
 		'nodes_reached_fully': 'nodes fully reached    ',
 		'nodes_reached_fully_wow': 'fully reached wow      ',
 		'nodes_reaching_all': 'nodes reaching all     ',
