@@ -1,5 +1,31 @@
 import graphm
-from graphm import Graph
+Graph = graphm.graph.Graph
+MatrixBinary = graphm.matrixbinary.MatrixBinary
+
+g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'])
+g.draw(f"files/graph-exemple-1.svg", ext='svg')
+
+g = Graph(boolean=['00010', '01100', '10000', '10100', '00000'], graph_attr={'label': 'blue nodes'}, node_attr={'shape': 'box', 'color': 'blue', 'filled': 'grey'})
+g.draw(f"files/graph-exemple-2.svg", ext='svg', graph_attr={'rankdir':'LR'})
+
+g2 = Graph(boolean=['00010', '01100', '10001', '10100', '00000'], node_style='int')
+g2.draw(f"files/graph-exemple-3.svg", ext='svg')
+
+g = Graph(boolean=['00010', '01100', '10001', '10100', '00000'], nodes=['α','β','γ','δ','ε','ζ','η','θ','ι','κ','λ','μ'], graph_attr={'label': 'grec', 'fontsize':14}, node_attr={'fontsize':20})
+g.draw(f"files/graph-exemple-4.svg", ext='svg')
+
+m = MatrixBinary(boolean=['00010', '01001', '10001', '11100', '00000'])
+g = Graph(binary=m, graph_attr={'label': 'binary', 'rankdir':'LR'}, node_style='int')
+g.draw(f"files/graph-exemple-5.svg", ext='svg')
+
+g = Graph(nodes='a,b,c', graph_attr={'label': 'nodes', 'rankdir':'LR'})
+g.draw(f"files/graph-exemple-6.svg", ext='svg')
+
+g = Graph(nodes=['A','B','C'], edges=('a-f','b-g','d-a','f-e','d-b','b-f'), graph_attr={'label': 'nodes & edges', 'rankdir':'LR'})
+g.draw(f"files/graph-exemple-7.svg", ext='svg')
+
+g = Graph(edges='a-d,d-a,d-c,c-a,b-c,b-b,e-f,f-g,b-i', graph_attr={'label': 'edges', 'rankdir':'LR'})
+g.draw(f"files/graph-exemple-8.svg", ext='svg')
 
 """
 graph_matrices	= [[None, 'A', 'B', None, None, None, None, None, None, None, None, None, 'L', 'O', None, 'P', None, None, None, None], [None, None, None, None, 'D', 'E', None, 'G', None, 'I', None, None, None, None, None, None, 'Q', None, None, None], [None, None, None, None, None, 'E', None, 'G', None, 'I', None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, None, None, None, 'J', None, None, None, None, None, None, None, None, None], [None, None, None, 'C', None, None, 'F', None, None, None, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, 'F', None, None, None, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, None, 'H', None, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, 'F', None, None, None, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, None, None, None, 'J', None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, 'F', None, None, None, None, 'K', None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, '<'], [None, None, None, None, None, None, None, None, 'H', None, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, None, None, None, None, None, None, None, 'O2', None, None, None, None, '<'], [None, None, None, None, None, None, 'F', None, None, None, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, 'F', None, None, None, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, 'X', 'Y', None], [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, 'F', None, None, None, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, 'F', None, None, None, None, None, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]]
@@ -162,6 +188,7 @@ g.draw('files/pert-reduce2-2.svg', ext='svg', graph_attr={'rankdir':'LR'})
 
 # set_down
 
+"""
 # CYCLE
 nodes = ['>', 'A', 'B', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'X', 'Z2', '<']
 matrix	= [[None, 2, 3, None, None, None, None, None, None, 10, None, None, 3, None], [None, None, None, 2, 1, None, 2, None, 1, None, None, 3, 3, None], [None, None, None, None, None, None, 2, None, 1, None, None, None, 3, None], [None, None, None, None, None, 3, None, 5, None, None, None, None, None, None], [None, None, None, None, None, 3, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, 2, None, None, None, None, None, None], [None, None, None, None, None, 3, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, None, None, 2, None, None, None, None], [None, None, None, None, None, 3, None, None, None, None, 3, None, None, None], [None, None, None, None, None, None, None, None, None, None, None, None, 3, 0], [None, None, None, None, None, None, None, 2, None, None, None, None, None, None], [None, None, None, None, None, 3, None, None, None, None, None, None, None, None], [None, None, None, None, None, 3, None, None, None, None, None, None, None, None], [None, None, None, None, None, None, None, None, None, None, None, None, None, None]]
@@ -178,11 +205,11 @@ nodes = ['>', 'A', 'B', 'C', 'E', 'F', 'G', 'I', 'J', '<']
 matrix	= [[None, 2, 3, None, None, None, None, None, 10, None], [None, None, None, None, 1, None, 2, None, None, None], [None, None, None, None, None, None, 2, 1, None, None], [None, None, None, None, None, None, None, None, 2, None], [None, None, None, None, None, 3, None, None, None, None], [None, None, None, 2, None, None, None, None, None, None], [None, None, None, 5, None, 3, None, None, None, None], [None, None, None, None, None, 3, None, None, None, None], [None, None, None, None, None, None, None, None, None, 0], [None, None, None, None, None, None, None, None, None, None]]
 g = Graph(matrix=matrix, nodes=nodes)
 g.draw('files/pert-setdown-2-1.svg', ext='svg', graph_attr={'rankdir':'LR'})
+"""
 
 
 """
 	GRAPH
-"""
 file = "files/grah_bin_01"
 m = graphm.MatrixBoolean(random=(6,6))
 mb = graphm.MatrixBinary(random=(6,6))
@@ -215,3 +242,4 @@ print(g.viz.string())
 #g = Graph(mt, nodes)
 #g.matrix2viz(label="G'")
 #g.draw(f"{file}-final.png")
+"""

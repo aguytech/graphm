@@ -5,11 +5,19 @@ MatrixBoolean = graphm.MatrixBoolean
 MatrixBinaryClosure = graphm.MatrixBinaryClosure
 
 m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
+m = MatrixBinary(boolean=['0000000100', '1000000010', '0000101000', '1000010001', '0000010000', '0010001000', '0000100000', '0001000000', '0010000100', '0100000010'])
 mbc = MatrixBinaryClosure(m.closure_slides())
+g = Graph(binary=m, node_style='int', graph_attr={'label': 'connectivity', 'rankdir': 'LR', 'ransep': 0.3})
+g.draw("files/test_binaryclosure-connectivity.svg", ext='svg')
+
 connected = mbc.is_connected()
 connected = mbc.is_connected_fully()
-cycle = mbc.nodes_connected()
+nodes_connected = mbc.nodes_connected()
 tree = mbc.is_matrix_tree()
+connectivity = mbc.connectivity()
+paths_cycle_0 = mbc.matrix.paths_cycle(0)
+paths_cycle_4 = mbc.matrix.paths_cycle(4)
+
 
 m =  MatrixBinary(boolean=['010010', '001000', '010101', '010010', '000000', '000000'])
 mbc = MatrixBinaryClosure(m.closure_slides())

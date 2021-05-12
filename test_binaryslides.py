@@ -42,8 +42,8 @@ print('report'), print(mbs.str_report())
 n = 10
 c = 0
 l = 0
-while l < 3 and c < 200:
-	m = MatrixBinary(random=(n, n), level=100)
+while l < 4 and c < 5000:
+	m = MatrixBinary(random=(n, n), level=200)
 	mbs = MatrixBinarySlides(m.closure_slides())
 	dc = mbs.connectivity()
 	l = len(dc['nodes_connected'])

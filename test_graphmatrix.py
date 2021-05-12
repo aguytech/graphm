@@ -1,5 +1,5 @@
 import graphm
-from graphm import GraphM
+GraphM = graphm.graphmatrix.GraphM
 
 """
 	GRAPH

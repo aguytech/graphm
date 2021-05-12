@@ -6,6 +6,21 @@ MatrixBinary = graphm.matrixbinary.MatrixBinary
 Graph = graphm.graph.Graph
 
 """
+	connectivity
+	
+from graphm.matrixbinaryslides import MatrixBinarySlides
+m =MatrixBinary(matrix=([17, 264, 32, 44, 128, 768, 256, 133, 260, 134],10))
+mbs = MatrixBinarySlides(m.closure_slides())
+r = mbs.connectivity()
+g = Graph(binary=m, node_style='int', graph_attr={'label': 'connected graph'})
+g.draw("files/graph-connected.svg", ext='svg')
+g = Graph(binary=mbs, node_style='int', graph_attr={'label': 'closure of graph'})
+g.draw("files/graph-connected-closure.svg", ext='svg')
+"""
+
+"""
+	test closures
+	
 m = MatrixBinary(boolean=['00001', '00100', '00010', '00000', '01001'])
 closure = m.closure_reflexive()
 closure_n = m.closure_reflexive(add=False, full=True)
@@ -19,14 +34,14 @@ print()
 """
 
 """
-	graph
+	graph & report
+	
 m =  MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
 g = Graph(binary=m, node_style='int')
 g.draw("files/m.svg", ext='svg')
 m = MatrixBinary(boolean=['010010', '001001', '010100', '010010', '000000', '100000'])
 g = Graph(binary=m, node_style='int')
 g.draw("files/m2.svg", ext='svg')
-"""
 
 m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000000'])
 m.matrixM = MatrixBinary.get_matrixX_united(m.matrixM, m.dimN)
@@ -51,8 +66,9 @@ m = MatrixBinary(boolean=['010010', '101000', '110100', '001010', '100100', '000
 sym_min = MatrixBinary.is_symmetric_pre(m)
 sym = MatrixBinary.is_symmetric(m)
 reflexive = MatrixBinary.is_reflexive(m)
+"""
 
-
+"""
 m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000001'])
 
 r = m.paths_from(0, 3)
@@ -63,6 +79,7 @@ r = m.paths_cycle(0)
 print(r)
 r = m.paths_cycle(3)
 print(r)
+"""
 
 """
 	test all closures

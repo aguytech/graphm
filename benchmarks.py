@@ -38,7 +38,7 @@ with open(f"files/benchmarks_closure-tmp.csv", "w") as f:
 	f.write(f'level, {level}\n')
 	for n in range(20,1020,20):
 		m = MatrixBinary(random=(n,n), level=level)
-		mb = MatrixBinary.export2bool(m)
+		mb = MatrixBinary.get_matrix_formated(m)
 		line = [str(n)]
 		
 		test_time(lines, 'closure_reflexive', m, 'closure_reflexive')
@@ -77,7 +77,7 @@ with open(f"files/benchmarks_closure-tmp.csv", "w") as f:
 	f.write(f'level, {level}\n')
 	for n in range(20,520,20):
 		m = MatrixBinary(random=(n,n), level=level)
-		mb =MatrixBinary.export2bool(m)
+		mb =MatrixBinary.get_matrix_formated(m)
 		line = [str(n)]
 		
 		test_time(lines, 'closure_reflexive', m, 'closure_reflexive')
