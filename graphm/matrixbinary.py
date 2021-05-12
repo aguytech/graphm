@@ -1034,7 +1034,7 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 			if isinstance(line, list):
 				line = ''.join(str(i) for i in line)
 			if len(line) != len_line:
-				raise ValueError("Wrong length for {line}")
+				raise ValueError(f"Wrong length for {line}")
 			matrixM.append(int('0b' + line, 2))
 	
 		self.matrixM = matrixM
