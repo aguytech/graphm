@@ -612,10 +612,6 @@ class GraphPert(graphm.graph.Graph):
 		self.add_nodes()
 		self.add_edges()
 		self.add_timeline()
-		print(self.viz)
-		self.draw('files/pert_first.svg', ext='svg')
-		
-		print('gag')
 		
 	def matrix_reduce(self):
 		
