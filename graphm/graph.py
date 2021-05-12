@@ -640,6 +640,7 @@ class Graph(object):
 
 		nodes_edges = {node for edge in edges for node in edge} if edges else set()
 		if nodes:
+			nodes = self.convert_nodes(nodes)
 			nodes = list(nodes_edges | set(nodes))
 			nodes.sort()
 		else:
