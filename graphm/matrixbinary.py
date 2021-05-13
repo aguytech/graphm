@@ -872,7 +872,7 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 			'deep': deep,
 			}
 	
-	def paths_from_to(self, node_start: int, node_end: int, deep: int=0) -> dict:
+	def paths_from_to(self, node_start: int, node_end: int, deep: int=0, shortest:bool=True) -> dict:
 		""" Return a dictionary of all paths starting from node 'node_start' to 'node_end'
 		
 		.. IMPORTANT:: You can limit the deep (rank) of searching by give deep in argument
@@ -880,6 +880,7 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		:param int node_start: the starting node
 		:param int node_end: the ending node
 		:param int deep: limit of rank from starting node to find paths of cycles
+		:param bool shortest=False: if true limits the research to the deep of first found
 
 		:return: paths
 		:rtype: dict
@@ -910,7 +911,10 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 		nodes_reached = {node_start}
 		paths = [[node_start]]
 		paths_final = []
-		deep_final = deep if deep else min(self.dimM, self.dimN)
+		if shortest:
+			deep_final = deep if deep else min(self.dimM, self.dimN)
+		else:
+			deep_final = min(self.dimM, self.dimN)  # for security
 		matrixMS = [MatrixBinary.get_int2str(line, self.dimN) for line in self.matrixM]
 		reflexive = MatrixBinary.is_reflexive(self)
 		# successors without reflexive  ones
@@ -923,7 +927,7 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 			paths = []
 		
 		deep = 0
-		while not reached and paths and deep < deep_final:
+		while (not shortest or (not reached and shortest)) and paths and deep < deep_final:
 			paths_tmp = paths
 			paths = []
 			for path in paths_tmp:
@@ -946,6 +950,70 @@ class MatrixBinary(graphm.amatrix.AMatrix):
 			'reached': reached,
 			'deep': deep,
 			'count': count,
+			}
+	
+	def get_paths_from_to_2(self, node_start: int, node_end: int, shortest:bool=True) -> list:
+		""" Return a dictionary of all paths starting from node 'node_start' to 'node_end'
+		
+		.. IMPORTANT:: by default returns all paths presents in the graph
+			To have  only found cycles until the transitive closure are reached,
+			put 'shortest' option to True
+		
+		:param int node_start: the starting node
+		:param int node_end: the ending node
+		:param bool shortest=False: if true limits paths to shortest ones, default is False
+
+		:return: paths
+		:rtype: dict
+
+			:count: (int) iterations count 
+			:nodes_reached: (set) all reached nodes including starting node
+			:paths_final: (list) all paths which access to maximal deep
+			:reached: (bool) True if node_end is reached by node_start
+
+		>>> m =MatrixBinary(boolean=['01001', '00100', '01010', '00001', '01010'])
+		>>> mbs = MatrixBinaryClosure(m.get_closure_optimized())
+		
+		>>> mbs.get_paths_from(3,2)
+		{'paths_final': [[3, 4, 1, 2]], 'paths_ended': [], 'paths_cycle': [[3, 4]], 'nodes_reached': {1, 2, 3, 4}}
+	
+		>>> mbs.get_paths_from(0,2)
+		{'paths_final': [[0, 1, 2, 3], [0, 4, 1, 2]], 'paths_ended': [], 'paths_cycle': [[1, 2], [4, 3]], 'nodes_reached': {0, 1, 2, 3, 4}}
+		"""
+		count = 1
+		reached = False
+		nodes_reached = {node_start}
+		paths = [[node_start]]
+		paths_final = []
+		deep_final = self.deep if shortest else self.dim # for security
+
+		# no successors with or without itself
+		if self.closureMS[node_start][node_end] == '0':
+			paths = []
+		
+		deep = 0
+		while (not shortest or (not reached and shortest)) and paths and deep < deep_final:
+			paths_tmp = paths
+			paths = []
+			for path in paths_tmp:
+				successors = self.successorsE[path[deep]]
+				for node in successors:
+					count += 1
+					if node == node_end:
+						paths_final.append(path + [node])
+						reached = True
+					else:
+						if node not in path:
+							nodes_reached.add(node)
+							paths.append(path + [node])
+				# clean paths if reached
+			deep += 1
+			
+		return {
+			'count': count,
+			'nodes_reached': nodes_reached,
+			'paths_final': paths_final,
+			'reached': reached,
 			}
 	
 	def report(self) -> dict:

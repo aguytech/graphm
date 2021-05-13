@@ -69,17 +69,25 @@ reflexive = MatrixBinary.is_reflexive(m)
 """
 
 """
-m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000001'])
-
-r = m.paths_from(0, 3)
-print(r)
-r = m.paths_from_to(0, 3)
-print(r)
-r = m.paths_cycle(0)
-print(r)
-r = m.paths_cycle(3)
-print(r)
+	paths
 """
+
+m = MatrixBinary(boolean=['010010', '001000', '010100', '010010', '000000', '000001'])
+m = MatrixBinary(boolean=['0000010001', '0100001000', '0000100000', '0000101100', '0010000000', '1100000000', '0100000000', '0010000101', '0100000100', '0010000110'])
+r = m.paths_cycle(0)
+print('paths_cycle 0', r)
+r = m.paths_cycle(4)
+print('paths_cycle 4', r)
+r = m.paths_from(0)
+print('paths_from 0', r)
+r = m.paths_from(0, 4)
+print('paths_from 0,4', r)
+r = m.paths_from_to(0, 2)
+print('paths_from_to 0,2', r)
+r = m.paths_from_to(0, 2, shortest=False)
+print('paths_from_to 0,2,False', r)
+r = m.paths_from_to(2, 0)
+print('paths_from_to 2,0', r)
 
 """
 	test all closures
